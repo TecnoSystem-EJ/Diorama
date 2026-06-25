@@ -4,10 +4,123 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client-js"
+  previewFeatures = []
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Edicao {
+  id        String    @id @default(uuid())
+  titulo    String    @db.Text
+  numeroTag String    @unique @map("numero_tag") @db.Text
+  capaUrl   String    @map("capa_url") @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
+
+  revistas Revista[] @relation("RevistasToEdicoes")
+
+  @@map("edicoes")
+}
+
+model Revista {
+  id             String    @id @default(uuid())
+  edicaoId       String    @map("edicao_id")
+  titulo         String    @db.Text
+  conteudo_html  String    @map("conteudo_html") @db.Text
+  imagemDestaque String    @map("imagem_destaque") @db.Text
+  pdfUrl         String    @map("pdf_url") @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deleted        Boolean   @default(false)
+  deletedAt      DateTime? @map("deleted_at")
+
+  edicao  Edicao  @relation("RevistasToEdicoes", fields: [edicaoId], references: [id])
+  autores Autor[] @relation("AutoresToRevistas")
+
+  @@map("revistas")
+}
+
+model Autor {
+  id        String   @id @default(uuid())
+  revistaId String   @map("revista_id")
+  nome      String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  revista Revista @relation("AutoresToRevistas", fields: [revistaId], references: [id])
+
+  @@map("autores")
+}
+
+model Blog {
+  id             String    @id @default(uuid())
+  titulo         String    @db.Text
+  conteudoHtml   String    @map("conteudo_html") @db.Text
+  dataPublicacao DateTime  @map("data_publicacao")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deleted        Boolean   @default(false)
+  deletedAt      DateTime? @map("deleted_at")
+
+  @@map("blogs")
+}
+
+model Projeto {
+  id           String    @id @default(uuid())
+  titulo       String    @db.Text
+  conteudoHtml String    @map("conteudo_html") @db.Text
+  imagemUrl    String    @map("imagem_url") @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deleted      Boolean   @default(false)
+  deletedAt    DateTime? @map("deleted_at")
+
+  @@map("projetos")
+}
+
+enum SubscriptionStatus {
+  ATIVO
+  CANCELADO
+}
+
+model Subscribers {
+  id           Int                @id @default(autoincrement())
+  nome         String             @db.Text
+  email        String             @unique @db.Text
+  status       SubscriptionStatus @default(ATIVO)
+  subscribedAt DateTime           @default(now()) @map("subscribed_at")
+  canceledAt   DateTime?          @map("canceled_at")
+
+  @@map("subscribers")
+}
+
+enum UsuarioRole {
+  ADMIN
+  AUTOR
+}
+
+model Usuario {
+  id        Int         @id @default(autoincrement())
+  username  String      @db.Text
+  email     String      @unique @db.Text
+  senhaHash String      @db.Text
+  role      UsuarioRole
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+  deleted   Boolean     @default(false)
+  deletedAt DateTime?   @map("deleted_at")
+
+  @@map("usuarios")
+}
+
+model SobreNos {
+  id                Int      @id @default(autoincrement())
+  textoCompletoHtml String   @map("texto_completo_html") @db.Text
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("sobre_nos")
 }

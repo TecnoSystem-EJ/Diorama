@@ -17,4 +17,5 @@ const connectionString = process.env.DATABASE_URL;
 const pool = new pg.Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 
+export * from "@prisma/client";
 export const db = new PrismaClient({ adapter });

@@ -1,5 +1,5 @@
 {
-  "name": "db",
+  "name": "@diorama/db",
   "version": "1.0.0",
   "description": "Módulo do banco de dados",
   "main": "./src/client.ts",

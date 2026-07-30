@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Navbar from "../components/Navbar";
 
 export default function Home() {
   const [position, setPosition] = useState({
@@ -294,15 +293,10 @@ export default function Home() {
 
 
               <Link
-                href="/login"
-                className="
-                  border-b
-                  border-white/50
-                  pb-1
-                  hover:border-white
-                "
-              >
-                Fazer Login
+                href="/Login"
+                className=" border-b border-white/50 pb-1 hover:border-white"
+                >
+                Fazer login
               </Link>
 
             </div>

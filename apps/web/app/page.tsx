@@ -1,5 +1,5 @@
-import LoginPage from "./pages/login"
-import Home from "./pages/home"
+import LoginPage from "./login/page"
+import Home from "./home/page"
 
 export default function Page() {
   return (

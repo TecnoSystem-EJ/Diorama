@@ -5,7 +5,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { LoginInput } from "./LoginInput";
 import { useAuth } from "../hooks/useAuth";
 
-function validate(email: string, password: string) {
+export function validate(email: string, password: string) {
   const errors = { email: "", password: "" };
   if (!email.trim()) errors.email = "E-mail obrigatório.";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "E-mail inválido.";

@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { PainelSubNav, type DashboardTab } from "../components/dashboard/SubNav";
-import { EdicaoSection } from "../components/dashboard/sections/EdicaoSection";
-import { MateriaSection } from "../components/dashboard/sections/MateriaSection";
-import { BlogSection } from "../components/dashboard/sections/BlogSection";
-import { ProjetoSection } from "../components/dashboard/sections/ProjetoSection";
-import { SobreSection } from "../components/dashboard/sections/SobreSection";
+import { PainelSubNav, type DashboardTab } from "../../components/dashboard/SubNav";
+import { EdicaoSection } from "../../components/dashboard/sections/EdicaoSection";
+import { BlogSection } from "../../components/dashboard/sections/blog/BlogSection";
+import { SobreSection } from "../../components/dashboard/sections/SobreSection";
+import { ProjetosSection } from "../../components/dashboard/sections/projeto/ProjetoSection";
+import { MateriasSection } from "../../components/dashboard/sections/materia/MateriaSection";
 
 const SECTIONS: Record<DashboardTab, () => React.JSX.Element> = {
   edicoes: EdicaoSection,
-  materias: MateriaSection,
+  materias: MateriasSection,
   blog: BlogSection,
-  projetos: ProjetoSection,
+  projetos: ProjetosSection,
   sobre: SobreSection,
 };
 

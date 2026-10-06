@@ -1,5 +1,5 @@
-import { SiteHeader } from "../components/Header"
-import { LoginForm } from "../components/LoginForm";
+import { SiteHeader } from "../../components/Header"
+import { LoginForm } from "../../components/LoginForm";
 
 export default function LoginPage() {
   return (

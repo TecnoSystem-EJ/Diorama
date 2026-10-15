@@ -32,17 +32,17 @@ export default function Header() {
             </div>
         </div>
 
-        <div className="text-black flex justify-between items-center border-b border-black px-4 pb-4 pt-2">
+        <div className="text-black flex justify-between items-baseline border-b border-black px-4 pb-4 pt-2">
             <div>
                 <h1 className="font-serif text-black text-5xl uppercase tracking-[0.15em] md:text-7xl"
                 >
                     <Link href="/home">Diorama</Link>
                 </h1>
             </div>
-            <div className="flex text-black uppercase gap-8 items-center font-bold">
-                <p className="cursor-pointer hover:opacity-50 transition-opacity"><Link href="/#">revista</Link></p>
-                <p className="cursor-pointer hover:opacity-50 transition-opacity"><Link href="/#">livros</Link></p>
-                <p className="cursor-pointer hover:opacity-50 transition-opacity"><Link href="/blog">extra!</Link></p>
+            <div className="flex text-black uppercase gap-8 text-xl font-bold items-baseline">
+                <p className="font-light cursor-pointer hover:font-black hover:opacity-80 transition-opacity"><Link href="/#">revista</Link></p>
+                <p className="font-light cursor-pointer hover:font-black hover:opacity-80 transition-opacity"><Link href="/#">livros</Link></p>
+                <p className="font-light cursor-pointer hover:font-black hover:opacity-80 transition-opacity"><Link href="/blog">extra!</Link></p>
             </div>
         </div>
       </header>

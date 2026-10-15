@@ -11,7 +11,10 @@ export default async function Page() {
     <>
       <Header />
       
-      <main className="p-8 max-w-7xl mx-auto min-h-[70vh]">
+      <main className="p-4 max-w-7xl mx-auto min-h-[70vh]">
+
+        <h1 className='uppercase font-light text-5xl mb-2'>Extra!</h1>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {artigos.map((artigo) => (
             <article key={artigo.id} className="flex flex-col justify-between border border-neutral-200 p-4 rounded-md">

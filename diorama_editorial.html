@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIORAMA - Plataforma Editorial</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-piseagrama: #F4F1EA;
+            --blue-diorama: #1A365D;
+            --text-dark: #111111;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-piseagrama); 
+            color: var(--text-dark); 
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+        
+        ::selection { background-color: var(--blue-diorama); color: var(--bg-piseagrama); }
+        .font-serif { font-family: 'Fraunces', serif; }
+
+        /* --- SISTEMA DE ANIMAÇÃO --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform, opacity;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .view-section { display: none !important; }
+        .view-section.active { 
+            display: block !important; 
+            animation: viewFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes viewFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-magazine { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .card-magazine:hover { transform: translateY(-8px); }
+        
+        /* CORREÇÃO DO EFEITO DE COR NAS IMAGENS */
+        .img-editorial {
+            filter: grayscale(100%);
+            transition: filter 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s ease;
+        }
+        .group:hover .img-editorial { filter: grayscale(0%); transform: scale(1.05); }
+
+        .nav-link { position: relative; transition: color 0.3s; }
+        .nav-link:hover { color: var(--blue-diorama); }
+        .nav-link::before {
+            content: '↳'; position: absolute; left: -20px; opacity: 0;
+            color: var(--blue-diorama); transition: opacity 0.3s, transform 0.3s; transform: translateX(-10px);
+        }
+        .nav-link:hover::before { opacity: 1; transform: translateX(0); }
+
+        .modal-overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        /* Quill UI */
+        .ql-toolbar.ql-snow { border: 1px solid rgba(0,0,0,0.1) !important; background: #fff; }
+        .ql-container.ql-snow { border: 1px solid rgba(0,0,0,0.1) !important; font-family: 'Fraunces', serif; }
+        .ql-editor { min-height: 200px; }
+
+        /* Fundo Animado e Parallax */
+        .view-home-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=1920'); 
+            background-position: center;
+            background-attachment: fixed; /* Efeito Parallax Escalonado */
+            filter: grayscale(100%) contrast(1.2) brightness(0.35); z-index: 0;
+            animation: brutalistPan 40s ease-in-out infinite alternate;
+        }
+        
+        @keyframes brutalistPan {
+            0% { background-size: 100%; }
+            100% { background-size: 110%; }
+        }
+        .view-home-content { position: relative; z-index: 10; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="w-full border-b border-black/10 bg-[#F4F1EA]/90 backdrop-blur-md sticky top-0 z-50 transition-all">
+        <div class="px-6 md:px-12 h-16 flex justify-between items-center">
+            <button onclick="navigate('home')" class="font-serif text-3xl font-bold tracking-tight uppercase hover:text-[#1A365D] transition-all">
+                DIORAMA
+            </button>
+            <div class="hidden md:flex gap-8 text-[11px] uppercase tracking-widest font-semibold items-center">
+                <button onclick="navigate('projetos')" id="nav-projetos" class="hover:text-[#1A365D] transition-colors">Projetos</button>
+                <button onclick="navigate('edicoes')" id="nav-edicoes" class="hover:text-[#1A365D] transition-colors">Edições</button>
+                <button onclick="navigate('sobre')" id="nav-sobre" class="hover:text-[#1A365D] transition-colors">Sobre Nós</button>
+                <button onclick="navigate('blog')" id="nav-blog" class="hover:text-[#1A365D] transition-colors">Blog</button>
+                <button onclick="handleAuthClick()" id="nav-login-btn" class="hover:text-[#1A365D] transition-colors border-l border-black/20 pl-8 ml-2">Login</button>
+            </div>
+            <button class="md:hidden"><i data-lucide="menu"></i></button>
+        </div>
+    </header>
+
+    <main id="view-home" class="view-section active flex-grow relative">
+        <div class="relative w-full min-h-[85vh] flex flex-col overflow-hidden">
+            <div class="view-home-bg"></div>
+            <div class="view-home-content grid grid-cols-1 md:grid-cols-2 flex-grow">
+                <div class="p-12 md:p-24 flex flex-col justify-center border-b md:border-b-0 md:border-r border-white/20">
+                    <nav class="flex flex-col gap-8 text-4xl md:text-6xl font-serif font-medium tracking-tight text-white drop-shadow-md">
+                        <button onclick="navigate('projetos')" class="nav-link text-left w-max reveal">projetos</button>
+                        <button onclick="navigate('sobre')" class="nav-link text-left w-max reveal" style="transition-delay: 0.1s;">sobre nós</button>
+                        <button onclick="navigate('edicoes')" class="nav-link text-left w-max reveal" style="transition-delay: 0.2s;">edições</button>
+                        <button onclick="navigate('blog')" class="nav-link text-left w-max reveal" style="transition-delay: 0.3s;">blog</button>
+                    </nav>
+                </div>
+                <div class="p-12 md:p-24 flex flex-col justify-center bg-[#EBE7DD]/95 backdrop-blur-sm">
+                    <div class="reveal" style="transition-delay: 0.4s;">
+                        <h2 class="font-serif text-4xl md:text-5xl font-medium leading-tight mb-8">Receba o Núcleo por email,<br> 100% de graça</h2>
+                        <form onsubmit="event.preventDefault(); alert('Inscrito com sucesso!');" class="flex flex-col gap-6 max-w-md">
+                            <input type="email" placeholder="Seu email" required class="bg-transparent border-b border-black/30 pb-3 text-lg focus:outline-none focus:border-[#1A365D] transition-colors font-serif placeholder:text-black/40">
+                            <div class="flex gap-4 items-center mt-4">
+                                <button type="submit" class="bg-black text-[#F4F1EA] px-10 py-4 text-xs uppercase tracking-widest font-semibold hover:bg-[#1A365D] transition-all transform hover:scale-105">Receber</button>
+                                <a href="#" class="text-[10px] uppercase font-bold tracking-tighter underline hover:text-[#1A365D]">Conheça as newsletters ></a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-10 bg-[#F4F1EA] px-6 md:px-12 py-20 border-b border-black/10">
+            <div class="max-w-[1400px] mx-auto">
+                <div class="flex justify-between items-end border-b border-black/10 pb-6 mb-16 reveal">
+                    <h2 class="font-serif text-4xl uppercase">Edições Recentes</h2>
+                    <button onclick="navigate('edicoes')" class="text-[10px] font-bold uppercase tracking-widest text-[#1A365D] hover:text-black transition-colors flex items-center gap-2">
+                        Ver Todas <i data-lucide="arrow-right" size="14"></i>
+                    </button>
+                </div>
+                <div id="home-recent-edicoes" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10"></div>
+            </div>
+        </div>
+
+        <div class="relative z-10 bg-white px-6 md:px-12 py-20">
+            <div class="max-w-[1400px] mx-auto">
+                <div class="border-b border-black/10 pb-6 mb-16 reveal">
+                    <h2 class="font-serif text-4xl uppercase">Revistas Recentes</h2>
+                </div>
+                <div id="home-recent-revistas" class="grid grid-cols-1 md:grid-cols-3 gap-16"></div>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-edicoes" class="view-section flex-grow relative z-10">
+        <div class="px-6 md:px-12 py-12 max-w-[1400px] mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-black/10 pb-10 mb-16 gap-6 reveal">
+                <h1 class="font-serif text-4xl md:text-5xl uppercase">Edições</h1>
+                <div class="relative w-full md:w-96 flex items-center group">
+                    <i data-lucide="search" class="absolute left-0 w-5 h-5 text-black/30 group-focus-within:text-[#1A365D] transition-colors"></i>
+                    <input type="text" id="search-edicoes" oninput="filterEdicoes(this.value)" placeholder="Pesquisar..." class="w-full pl-8 pb-2 bg-transparent border-b-2 border-black/10 focus:outline-none focus:border-[#1A365D] transition-colors text-base font-serif">
+                </div>
+            </div>
+            <div id="grid-edicoes" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-10 gap-y-20"></div>
+        </div>
+    </main>
+
+    <main id="view-edicao-detalhe" class="view-section flex-grow bg-white relative z-10">
+        <div class="px-6 md:px-12 py-12 border-b border-black/10 bg-[#F4F1EA]">
+            <button onclick="navigate('edicoes')" class="text-[10px] uppercase tracking-widest font-bold text-black/40 hover:text-[#1A365D] flex items-center gap-2 mb-6 transition-colors">
+                <i data-lucide="arrow-left" size="14"></i> Voltar para Edições
+            </button>
+            <h1 id="detalhe-titulo" class="font-serif text-6xl md:text-8xl uppercase tracking-tighter reveal">TÍTULO</h1>
+        </div>
+        <div class="px-6 md:px-12 py-16 max-w-[1400px] mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-black/10 pb-4 gap-6">
+                <h2 class="font-serif text-2xl uppercase tracking-widest text-black/40">Índice / Matérias</h2>
+                
+                <!-- NOVA ÁREA: Botão de Ver Todas as Revistas (Abrir Edição Completa) + Busca -->
+                <div class="flex flex-col md:flex-row gap-6 items-center w-full md:w-auto mt-4 md:mt-0">
+                    <button onclick="openFullEditionPDF()" class="bg-black text-[#F4F1EA] px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#1A365D] transition-all transform hover:scale-105 flex items-center gap-2 whitespace-nowrap">
+                        <i data-lucide="layers" size="16"></i> Ver Todas as Revistas
+                    </button>
+
+                    <div class="relative w-full md:w-80 flex items-center group">
+                        <i data-lucide="search" class="absolute left-0 w-5 h-5 text-black/30"></i>
+                        <input type="text" id="search-artigos" oninput="filterArtigos(this.value)" placeholder="Filtrar conteúdo..." class="w-full pl-8 pb-2 bg-transparent border-b border-black/10 focus:outline-none focus:border-[#1A365D] transition-colors font-serif">
+                    </div>
+                </div>
+            </div>
+            <div id="grid-artigos" class="grid grid-cols-1 md:grid-cols-3 gap-16 pt-8"></div>
+        </div>
+    </main>
+
+    <main id="view-ler-artigo" class="view-section flex-grow bg-white relative z-10">
+        <div class="px-6 md:px-12 py-12 border-b border-black/10 bg-[#F4F1EA] flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+            <div>
+                <button onclick="navigate('edicao-detalhe')" class="text-[10px] uppercase tracking-widest font-bold text-black/40 hover:text-[#1A365D] flex items-center gap-2 mb-6 transition-colors">
+                    <i data-lucide="arrow-left" size="14"></i> Voltar para o Índice da Edição
+                </button>
+                <h1 id="ler-artigo-titulo" class="font-serif text-5xl md:text-7xl tracking-tighter leading-tight reveal max-w-5xl">Título da Matéria</h1>
+                <span id="ler-artigo-autor" class="text-xs uppercase font-bold tracking-widest text-black/50 mt-8 block reveal">Autor</span>
+            </div>
+            
+            <button onclick="openFullEditionPDF()" class="bg-black text-white px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-[#1A365D] transition-all transform hover:scale-105 reveal flex items-center gap-2">
+                <i data-lucide="book-open" size="16"></i> Ler Edição Completa
+            </button>
+        </div>
+        <div class="px-6 md:px-12 py-20 max-w-4xl mx-auto">
+            <div id="ler-artigo-conteudo" class="prose prose-stone prose-lg max-w-none text-black/80 font-serif leading-relaxed reveal">
+                </div>
+        </div>
+    </main>
+
+    <main id="view-projetos" class="view-section flex-grow relative z-10">
+        <div class="px-6 md:px-12 py-12 max-w-[1400px] mx-auto">
+            <h1 class="font-serif text-4xl uppercase border-b border-black/10 pb-8 mb-16 reveal">Projetos Especiais</h1>
+            <div id="grid-projetos" class="grid grid-cols-1 md:grid-cols-2 gap-20"></div>
+        </div>
+    </main>
+
+    <main id="view-sobre" class="view-section flex-grow bg-white relative z-10">
+        <div class="px-6 md:px-12 py-20 max-w-4xl mx-auto">
+            <h1 class="font-serif text-6xl md:text-8xl uppercase tracking-tighter mb-12 reveal">A Diorama</h1>
+            <div id="sobre-content" class="prose prose-stone prose-lg max-w-none text-black/80 font-serif leading-relaxed reveal"></div>
+        </div>
+    </main>
+
+    <main id="view-blog" class="view-section flex-grow bg-[#EBE7DD]/30 relative z-10">
+        <div class="px-6 md:px-12 py-12 max-w-[1000px] mx-auto">
+            <h1 class="font-serif text-4xl uppercase border-b border-black/10 pb-8 mb-16 reveal">Blog / Ensaios</h1>
+            <div id="grid-blog" class="flex flex-col gap-20"></div>
+        </div>
+    </main>
+
+    <main id="view-login" class="view-section flex-grow py-20 px-6 relative z-50">
+        <div class="flex items-center justify-center min-h-[60vh]">
+            <div class="bg-white border border-black/10 p-12 md:p-20 max-w-lg w-full shadow-2xl reveal">
+                <h1 class="font-serif text-5xl mb-2 text-center uppercase tracking-tighter">Diorama</h1>
+                <p class="text-[10px] uppercase tracking-[0.3em] text-center text-black/40 mb-12">Painel Editorial</p>
+                <form onsubmit="handleLogin(event)" class="flex flex-col gap-8">
+                    <input type="text" value="admin@diorama.com" class="border-b border-black/20 pb-2 bg-transparent focus:border-[#1A365D] outline-none font-medium">
+                    <input type="password" value="123456" class="border-b border-black/20 pb-2 bg-transparent focus:border-[#1A365D] outline-none font-medium">
+                    <button type="submit" class="bg-black text-white py-5 text-[11px] font-bold uppercase tracking-widest hover:bg-[#1A365D] transition-all">Aceder ao Painel</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-admin" class="view-section flex-grow bg-white relative z-50">
+        <div class="border-b border-black/10 bg-[#F4F1EA] px-6 md:px-12 py-8 flex flex-col md:flex-row justify-between md:items-center gap-6">
+            <div>
+                <h1 class="font-serif text-4xl tracking-tight">Painel Editorial</h1>
+                <p class="text-[10px] uppercase tracking-widest text-black/40 mt-1">Gestão de Conteúdo Profissional</p>
+            </div>
+            <div class="flex flex-wrap gap-6 items-center">
+                <button onclick="switchAdminTab('edicoes')" id="tab-admin-edicoes" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-black pb-1">Edições Base</button>
+                <button onclick="switchAdminTab('revistas')" id="tab-admin-revistas" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-transparent text-black/40 hover:text-black pb-1">Matérias das Edições</button>
+                <button onclick="switchAdminTab('blog')" id="tab-admin-blog" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-transparent text-black/40 hover:text-black pb-1">Blog</button>
+                <button onclick="switchAdminTab('projetos')" id="tab-admin-projetos" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-transparent text-black/40 hover:text-black pb-1">Projetos</button>
+                <button onclick="switchAdminTab('sobre')" id="tab-admin-sobre" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-transparent text-black/40 hover:text-black pb-1">Sobre</button>
+                <button onclick="handleLogout()" class="text-[10px] font-bold uppercase tracking-widest text-red-500 border-l border-black/10 pl-6">Sair</button>
+            </div>
+        </div>
+
+        <div class="px-6 md:px-12 py-16 max-w-[1400px] mx-auto">
+            <div id="admin-secao-edicoes" class="block">
+                <div class="flex justify-between items-end border-b border-black/20 pb-4 mb-8">
+                    <h2 class="font-serif text-2xl">Edições Publicadas</h2>
+                    <button onclick="openAdminModal('edicao')" class="bg-black text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-[#1A365D] transition-colors">+ Nova Edição</button>
+                </div>
+                <div class="overflow-x-auto"><table class="w-full text-left text-sm border-collapse"><tbody id="admin-table-edicoes"></tbody></table></div>
+            </div>
+
+            <div id="admin-secao-revistas" class="hidden">
+                <div class="flex justify-between items-end border-b border-black/20 pb-4 mb-8">
+                    <h2 class="font-serif text-2xl">Matérias / Textos das Edições</h2>
+                    <button onclick="openAdminModal('revista')" class="bg-black text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-[#1A365D] transition-colors">+ Nova Matéria</button>
+                </div>
+                <div class="overflow-x-auto"><table class="w-full text-left text-sm border-collapse">
+                    <thead><tr class="text-[10px] uppercase tracking-widest text-black/50 border-b border-black/20"><th class="pb-3 font-normal">Imagem</th><th class="pb-3 font-normal">Pertence à Edição</th><th class="pb-3 font-normal">Título / Autor</th><th class="pb-3 font-normal text-right">Ações</th></tr></thead>
+                    <tbody id="admin-table-revistas"></tbody>
+                </table></div>
+            </div>
+
+            <div id="admin-secao-blog" class="hidden">
+                <div class="flex justify-between items-end border-b border-black/20 pb-4 mb-8">
+                    <h2 class="font-serif text-2xl">Ensaios / Blog</h2>
+                    <button onclick="openAdminModal('blog')" class="bg-black text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-[#1A365D] transition-colors">+ Novo Ensaio</button>
+                </div>
+                <div class="overflow-x-auto"><table class="w-full text-left text-sm border-collapse"><tbody id="admin-table-blog"></tbody></table></div>
+            </div>
+
+            <div id="admin-secao-projetos" class="hidden">
+                <div class="flex justify-between items-end border-b border-black/20 pb-4 mb-8">
+                    <h2 class="font-serif text-2xl">Projetos Especiais</h2>
+                    <button onclick="openAdminModal('projeto')" class="bg-black text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-[#1A365D] transition-colors">+ Novo Projeto</button>
+                </div>
+                <div class="overflow-x-auto"><table class="w-full text-left text-sm border-collapse"><tbody id="admin-table-projetos"></tbody></table></div>
+            </div>
+
+            <div id="admin-secao-sobre" class="hidden">
+                <div class="flex justify-between items-end border-b border-black/20 pb-4 mb-8">
+                    <h2 class="font-serif text-2xl">Editar Página "Sobre Nós"</h2>
+                </div>
+                <form onsubmit="saveSobreInfo(event)" class="max-w-4xl bg-[#F4F1EA] p-8 border border-black/10">
+                    <div class="flex flex-col mb-6">
+                        <label class="text-[10px] uppercase font-bold tracking-widest text-black/70 mb-2">Editor Avançado (Adicione textos, imagens, negritos)</label>
+                        <div id="quill-sobre-editor" class="bg-white"></div>
+                    </div>
+                    <button type="submit" class="bg-black text-[#F4F1EA] px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#1A365D] transition-colors">Guardar Alterações</button>
+                    <span id="sobre-success-msg" class="text-xs font-bold text-[#1A365D] ml-4 opacity-0 transition-opacity">Guardado com sucesso!</span>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <div id="admin-crud-modal" class="modal-overlay fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
+        <div class="bg-[#F4F1EA] w-full max-w-4xl border border-black/20 shadow-2xl flex flex-col max-h-[95vh]">
+            <div class="p-6 border-b border-black/20 flex justify-between items-center bg-white">
+                <h2 id="admin-modal-title" class="font-serif text-2xl">Adicionar</h2>
+                <button type="button" onclick="closeAdminModal()" class="text-black/50 hover:text-red-600 transition-colors"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto">
+                <form id="admin-crud-form" onsubmit="saveContent(event)" class="flex flex-col gap-6">
+                    <input type="hidden" id="crud-id">
+                    <input type="hidden" id="crud-type">
+                    <input type="hidden" id="crud-old-edicao-id">
+
+                    <div class="flex flex-col" id="field-edicao-relacionada">
+                        <label class="text-[10px] uppercase font-bold tracking-widest text-black/70 mb-2">Vincular a qual Edição?</label>
+                        <select id="crud-edicao-relacionada" class="border border-black/30 p-2 bg-transparent focus:outline-none focus:border-[#1A365D] transition-colors font-serif"></select>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex flex-col">
+                            <label class="text-[10px] uppercase font-bold tracking-widest text-black/70 mb-2">Título Principal</label>
+                            <input type="text" id="crud-titulo" required class="border-b border-black/30 pb-2 bg-transparent focus:outline-none focus:border-[#1A365D] transition-colors font-serif">
+                        </div>
+                        <div class="flex flex-col" id="field-numero">
+                            <label class="text-[10px] uppercase font-bold tracking-widest text-black/70 mb-2">Número / Tag (Ex: Edição 01)</label>
+                            <input type="text" id="crud-numero" class="border-b border-black/30 pb-2 bg-transparent focus:outline-none focus:border-[#1A365D] transition-colors font-serif">
+                        </div>
+                        <div class="flex flex-col" id="field-autor">
+                            <label class="text-[10px] uppercase font-bold tracking-widest text-black/70 mb-2">Autor / Créditos</label>
+                            <input type="text" id="crud-autor" class="border-b border-black/30 pb-2 bg-transparent focus:outline-none focus:border-[#1A365D] transition-colors font-serif">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col" id="field-imagem">
+                        <label class="text-[10px] uppercase font-bold tracking-widest text-black/70 mb-2">URL da Capa / Imagem Destacada</label>
+                        <input type="url" id="crud-imagem" class="border-b border-black/30 pb-2 bg-transparent focus:outline-none focus:border-[#1A365D] transition-colors font-serif" placeholder="https://...">
+                    </div>
+
+                    <div class="flex flex-col" id="field-editor-avancado">
+                        <label class="text-[10px] uppercase font-bold tracking-widest text-black/70 mb-2">Conteúdo da Matéria (Editor Avançado)</label>
+                        <div id="quill-crud-editor" class="bg-white"></div>
+                    </div>
+
+                    <div class="mt-4 flex justify-end gap-4 border-t border-black/20 pt-6">
+                        <button type="button" onclick="closeAdminModal()" class="px-6 py-3 text-xs font-bold uppercase tracking-widest text-black/60 hover:text-black">Cancelar</button>
+                        <button type="submit" class="bg-black text-[#F4F1EA] px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#1A365D] transition-colors">Guardar Registo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="pdf-modal" class="modal-overlay fixed inset-0 z-[100] bg-[#F4F1EA] flex flex-col">
+        <div class="h-16 border-b border-black/10 flex justify-between items-center px-8 bg-white">
+            <span id="pdf-title" class="font-serif text-xl font-medium text-[#1A365D]">Documento</span>
+            <button onclick="closePDF()" class="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2 hover:text-red-500 transition-colors">
+                Fechar Visualizador <i data-lucide="x" size="18"></i>
+            </button>
+        </div>
+        <div class="flex-grow bg-[#EBE7DD]/50 p-6 overflow-y-auto flex justify-center">
+            <div class="w-full max-w-5xl bg-white shadow-2xl min-h-[1200px] flex flex-col items-center justify-center border border-black/5 animate-pulse">
+                <i data-lucide="file-text" size="64" class="text-black/10 mb-6"></i>
+                <h2 class="font-serif text-3xl text-black/30">Visualizador de PDF da Edição Completa</h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initAnimations() {
+            const observerOptions = { threshold: 0.15, rootMargin: "0px 0px -50px 0px" };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) { entry.target.classList.add('active'); }
+                });
+            }, observerOptions);
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        }
+
+        function navigate(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById(`view-${viewId}`);
+            target.classList.add('active');
+            
+            target.querySelectorAll('.reveal').forEach(el => el.classList.remove('active'));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(initAnimations, 50);
+
+            const navLinks = ['projetos', 'edicoes', 'sobre', 'blog'];
+            navLinks.forEach(link => {
+                const el = document.getElementById(`nav-${link}`);
+                if(el) {
+                    const isActive = link === viewId || 
+                                     (viewId === 'edicao-detalhe' && link === 'edicoes') ||
+                                     (viewId === 'ler-artigo' && link === 'edicoes');
+                    el.classList.toggle('text-[#1A365D]', isActive);
+                }
+            });
+        }
+
+        let isAuthenticated = false;
+        let quillSobre, quillCrud;
+        const quillOptions = {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'image', 'video'],
+                    ['clean']
+                ]
+            }
+        };
+
+        let bancoDeDados = [
+            { id: 1, numero: "Edição 01", titulo: "Vegetalidades", capa: "https://plus.unsplash.com/premium_photo-1675798983878-604c09f6d154?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", artigos: [
+                { id: 101, titulo: "Isto é Comida da África", autor: "Texto de Judith A. Carney", resumo: "<p>O papel dos africanos escravizados nas culturas de arroz não se restringiu à mão de obra. Contra a narrativa histórica hegemónica, relatos orais permitem traçar uma história diferente e viva...</p><p><em>Lorem ipsu</em></p>", imagem: "https://images.unsplash.com/photo-1597348989645-46b190ce4918?q=80&w=600" },
+                { id: 102, titulo: "As Plantas, Os Bichos", autor: "Ensaio Visual", resumo: "<p>Um ensaio sobre as dinâmicas naturais.</p>", imagem: "https://plus.unsplash.com/premium_photo-1661888256596-add059eb595d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" }
+            ]},
+            { id: 2, numero: "Edição 02", titulo: "Comunidades", capa: "https://images.unsplash.com/photo-1528605105345-5344ea20e269?auto=format&fit=crop&q=80&w=600", artigos: [
+                { id: 201, titulo: "Cooperativismo Radical", autor: "Texto da Redação", resumo: "<p>Marcas construídas coletivamente para gerar valor económico.</p>", imagem: "https://images.unsplash.com/photo-1529156069898-49953eb1b5ce?auto=format&fit=crop&q=80&w=600" }
+            ]},
+            { id: 3, numero: "Edição 03", titulo: "Futuro", capa: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=600", artigos: [] }
+        ];
+
+        let blogDb = [
+            { id: 1, data: "18 Junho 2026", titulo: "O impacto da arquitetura modular", resumo: "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. <strong>Texto em negrito</strong>.</p>" },
+        ];
+
+        let projetosDb = [
+            { id: 1, titulo: "Campanha Zero Eleitoral", imagem: "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&q=80&w=800", desc: "<h3>Campanha de Ocupação</h3><p>Conscientização e ocupação do espaço público.</p>" },
+        ];
+
+        let sobreDb = {
+            texto: "<h3>A Nossa Missão</h3><p>DIORAMA é uma plataforma editorial sem fins lucrativos, sem publicidade e open access que se dedica a inventar confluências e catalisar ideias.</p><p>Em aliança com coletivos urbanos, a DIORAMA atua como um espaço de resistência.</p>"
+        };
+
+        window.onload = function() {
+            quillSobre = new Quill('#quill-sobre-editor', quillOptions);
+            quillCrud = new Quill('#quill-crud-editor', quillOptions);
+            renderPublicViews();
+            lucide.createIcons();
+            initAnimations();
+        };
+
+        function handleAuthClick() {
+            if (isAuthenticated) { navigate('admin'); renderAdminTables(); } 
+            else { navigate('login'); }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            isAuthenticated = true;
+            document.getElementById('nav-login-btn').innerText = 'Painel';
+            document.getElementById('nav-login-btn').classList.add('text-[#1A365D]', 'font-bold');
+            navigate('admin');
+            renderAdminTables();
+        }
+
+        function handleLogout() {
+            isAuthenticated = false;
+            document.getElementById('nav-login-btn').innerText = 'Login';
+            document.getElementById('nav-login-btn').classList.remove('text-[#1A365D]', 'font-bold');
+            navigate('home');
+        }
+
+        function renderPublicViews() {
+            renderEdicoes();
+            renderHomeSections();
+            
+            document.getElementById('grid-blog').innerHTML = blogDb.map((post, idx) => `
+                <article class="border-b border-black/10 pb-12 group reveal" style="transition-delay: ${idx * 0.15}s">
+                    <time class="text-[10px] uppercase font-bold tracking-widest text-[#1A365D] mb-4 block">${post.data}</time>
+                    <h2 class="font-serif text-4xl mb-4 group-hover:text-[#1A365D] transition-colors">${post.titulo}</h2>
+                    <div class="prose prose-stone max-w-none text-black/70 mb-6">${post.resumo}</div>
+                </article>
+            `).join('');
+
+            document.getElementById('grid-projetos').innerHTML = projetosDb.map((proj, idx) => `
+                <div class="group reveal cursor-pointer" style="transition-delay: ${idx * 0.15}s">
+                    <div class="w-full aspect-video overflow-hidden mb-6 bg-black/5">
+                        <img src="${proj.imagem}" class="img-editorial w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/800x450?text=Projeto'">
+                    </div>
+                    <h3 class="font-serif text-3xl mb-3 group-hover:text-[#1A365D] transition-colors">${proj.titulo}</h3>
+                    <div class="prose prose-sm prose-stone max-w-none text-black/60">${proj.desc}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('sobre-content').innerHTML = sobreDb.texto;
+        }
+
+        function renderHomeSections() {
+            const edicoesRecentes = bancoDeDados.slice(0, 4);
+            document.getElementById('home-recent-edicoes').innerHTML = edicoesRecentes.map((edicao, idx) => `
+                <div class="card-magazine group cursor-pointer flex flex-col items-center text-center reveal" style="transition-delay: ${idx * 0.1}s" onclick="openEdicao(${edicao.id})">
+                    <div class="w-full aspect-[3/4] mb-6 bg-gray-200 shadow-xl overflow-hidden transition-all duration-700">
+                        <img src="${edicao.capa}" class="img-editorial w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/600x800?text=Sem+Capa'">
+                    </div>
+                    <span class="text-[9px] font-bold tracking-[0.3em] uppercase text-black/30 mb-2">${edicao.numero}</span>
+                    <h3 class="font-serif text-2xl uppercase tracking-tighter group-hover:text-[#1A365D] transition-colors">${edicao.titulo}</h3>
+                </div>
+            `).join('');
+
+            let todasRevistas = [];
+            bancoDeDados.forEach(ed => {
+                if(ed.artigos) {
+                    ed.artigos.forEach(art => {
+                        todasRevistas.push({...art, edicaoId: ed.id, edicaoTitulo: ed.titulo});
+                    });
+                }
+            });
+            
+            const revistasRecentes = todasRevistas.slice(0, 3);
+            document.getElementById('home-recent-revistas').innerHTML = revistasRecentes.map((artigo, idx) => `
+                <div class="flex flex-col group reveal" style="transition-delay: ${idx * 0.15}s">
+                    <div class="w-full aspect-square mb-8 overflow-hidden bg-gray-100 cursor-pointer shadow-lg" onclick="currentEdicaoId=${artigo.edicaoId}; lerArtigo(${artigo.id})">
+                        <img src="${artigo.imagem}" class="img-editorial w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/600x600?text=Artigo'">
+                    </div>
+                    <span class="text-[9px] font-bold tracking-[0.3em] uppercase text-[#1A365D] mb-2">${artigo.edicaoTitulo}</span>
+                    <h4 class="font-serif text-3xl mb-3 cursor-pointer group-hover:text-[#1A365D] transition-colors" onclick="currentEdicaoId=${artigo.edicaoId}; lerArtigo(${artigo.id})">${artigo.titulo}</h4>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-black/30 mb-6 border-b border-black/5 pb-6">${artigo.autor}</span>
+                    <div class="prose prose-sm font-serif text-black/70 mb-8 flex-grow line-clamp-3">${artigo.resumo}</div>
+                    <button onclick="currentEdicaoId=${artigo.edicaoId}; lerArtigo(${artigo.id})" class="mt-auto inline-flex items-center text-[10px] font-bold uppercase tracking-widest text-[#1A365D] hover:text-black transition-all">
+                        Ler Matéria <i data-lucide="arrow-right" size="14" class="ml-2"></i>
+                    </button>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        function renderEdicoes(filter = '') {
+            const termo = filter.toLowerCase();
+            const filtrados = bancoDeDados.filter(ed => ed.titulo.toLowerCase().includes(termo) || ed.numero.toLowerCase().includes(termo));
+            const container = document.getElementById('grid-edicoes');
+            
+            if (filtrados.length === 0) {
+                container.innerHTML = `<p class="col-span-4 text-center text-black/50 py-12 font-serif text-xl">Nenhuma edição encontrada.</p>`;
+            } else {
+                container.innerHTML = filtrados.map((edicao, idx) => `
+                    <div class="card-magazine group cursor-pointer flex flex-col items-center text-center reveal" style="transition-delay: ${idx * 0.1}s" onclick="openEdicao(${edicao.id})">
+                        <div class="w-full aspect-[3/4] mb-6 bg-gray-200 shadow-xl overflow-hidden transition-all duration-700">
+                            <img src="${edicao.capa}" class="img-editorial w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/600x800?text=Sem+Capa'">
+                        </div>
+                        <span class="text-[9px] font-bold tracking-[0.3em] uppercase text-black/30 mb-2">${edicao.numero}</span>
+                        <h3 class="font-serif text-2xl uppercase tracking-tighter group-hover:text-[#1A365D] transition-colors">${edicao.titulo}</h3>
+                    </div>
+                `).join('');
+            }
+            initAnimations();
+        }
+        function filterEdicoes(value) { renderEdicoes(value); }
+
+        let currentEdicaoId = null;
+        function renderArtigos(filter = '') {
+            const edicao = bancoDeDados.find(e => e.id === currentEdicaoId);
+            if(!edicao) return;
+            document.getElementById('detalhe-titulo').innerText = edicao.titulo;
+            const container = document.getElementById('grid-artigos');
+            const termo = filter.toLowerCase();
+
+            if(!edicao.artigos || edicao.artigos.length === 0) {
+                container.innerHTML = `<p class="col-span-3 text-center text-black/50 py-12 font-serif text-xl">Conteúdos desta edição estarão disponíveis em breve.</p>`;
+                return;
+            }
+
+            const filtrados = edicao.artigos.filter(art => art.titulo.toLowerCase().includes(termo) || art.autor.toLowerCase().includes(termo) || art.resumo.toLowerCase().includes(termo));
+
+            if (filtrados.length === 0) {
+                container.innerHTML = `<p class="col-span-3 text-center text-black/50 py-12 font-serif text-xl">Nenhum conteúdo encontrado.</p>`;
+            } else {
+                container.innerHTML = filtrados.map((artigo, idx) => `
+                    <div class="flex flex-col group reveal" style="transition-delay: ${idx * 0.15}s">
+                        <div class="w-full aspect-square mb-8 overflow-hidden bg-gray-100 cursor-pointer shadow-lg" onclick="lerArtigo(${artigo.id})">
+                            <img src="${artigo.imagem}" class="img-editorial w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/600x600?text=Artigo'">
+                        </div>
+                        <h4 class="font-serif text-3xl mb-3 cursor-pointer group-hover:text-[#1A365D] transition-colors" onclick="lerArtigo(${artigo.id})">${artigo.titulo}</h4>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-black/30 mb-6 border-b border-black/5 pb-6">${artigo.autor}</span>
+                        <div class="prose prose-sm font-serif text-black/70 mb-8 flex-grow line-clamp-4">${artigo.resumo}</div>
+                        <button onclick="lerArtigo(${artigo.id})" class="mt-auto inline-flex items-center text-[10px] font-bold uppercase tracking-widest text-[#1A365D] hover:text-black transition-all">
+                            Ler Artigo Completo <i data-lucide="arrow-right" size="14" class="ml-2"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+            lucide.createIcons();
+            initAnimations();
+        }
+        function filterArtigos(value) { renderArtigos(value); }
+        
+        function lerArtigo(artigoId) {
+            const edicao = bancoDeDados.find(e => e.id === currentEdicaoId);
+            const artigo = edicao.artigos.find(a => a.id === artigoId);
+            if(!artigo) return;
+
+            document.getElementById('ler-artigo-titulo').innerText = artigo.titulo;
+            document.getElementById('ler-artigo-autor').innerText = artigo.autor;
+            document.getElementById('ler-artigo-conteudo').innerHTML = artigo.resumo;
+
+            navigate('ler-artigo');
+        }
+
+        function switchAdminTab(tab) {
+            const tabs = ['edicoes', 'revistas', 'blog', 'projetos', 'sobre'];
+            tabs.forEach(t => {
+                document.getElementById(`admin-secao-${t}`).classList.toggle('hidden', tab !== t);
+                document.getElementById(`admin-secao-${t}`).classList.toggle('block', tab === t);
+                
+                const tabBtn = document.getElementById(`tab-admin-${t}`);
+                if(tab === t) {
+                    tabBtn.className = "text-[10px] font-bold uppercase tracking-widest border-b-2 border-black pb-1 text-black";
+                } else {
+                    tabBtn.className = "text-[10px] font-bold uppercase tracking-widest border-b-2 border-transparent text-black/40 hover:text-black pb-1";
+                }
+            });
+
+            if (tab === 'sobre') {
+                quillSobre.root.innerHTML = sobreDb.texto;
+            }
+        }
+
+        function renderAdminTables() {
+            document.getElementById('admin-table-edicoes').innerHTML = bancoDeDados.map(ed => `
+                <tr class="border-b border-black/10 hover:bg-[#EBE7DD] transition-colors">
+                    <td class="py-3"><img src="${ed.capa}" class="w-8 h-10 object-cover border border-black/20" onerror="this.src='https://via.placeholder.com/40x50?text=Capa'"></td>
+                    <td class="py-3 text-xs font-bold">${ed.numero}</td>
+                    <td class="py-3 font-serif text-lg">${ed.titulo}</td>
+                    <td class="py-3 text-xs text-black/50">${ed.artigos ? ed.artigos.length : 0} Documentos</td>
+                    <td class="py-3 text-right">
+                        <button onclick="editContent('edicao', ${ed.id})" class="text-[10px] uppercase font-bold tracking-widest text-[#1A365D] hover:underline mr-3">Editar</button>
+                        <button onclick="deleteContent('edicao', ${ed.id})" class="text-[10px] uppercase font-bold tracking-widest text-red-600 hover:underline">Remover</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            let htmlRevistas = '';
+            bancoDeDados.forEach(ed => {
+                if(ed.artigos) {
+                    ed.artigos.forEach(art => {
+                        htmlRevistas += `
+                        <tr class="border-b border-black/10 hover:bg-[#EBE7DD] transition-colors">
+                            <td class="py-3"><img src="${art.imagem}" class="w-8 h-8 object-cover border border-black/20" onerror="this.src='https://via.placeholder.com/40x40'"></td>
+                            <td class="py-3 text-xs font-bold text-[#1A365D]">${ed.titulo}</td>
+                            <td class="py-3">
+                                <div class="font-serif text-base">${art.titulo}</div>
+                                <div class="text-[10px] uppercase text-black/50">${art.autor}</div>
+                            </td>
+                            <td class="py-3 text-right">
+                                <button onclick="editContent('revista', ${art.id}, ${ed.id})" class="text-[10px] uppercase font-bold tracking-widest text-[#1A365D] hover:underline mr-3">Editar</button>
+                                <button onclick="deleteContent('revista', ${art.id}, ${ed.id})" class="text-[10px] uppercase font-bold tracking-widest text-red-600 hover:underline">Remover</button>
+                            </td>
+                        </tr>`;
+                    });
+                }
+            });
+            document.getElementById('admin-table-revistas').innerHTML = htmlRevistas || '<tr><td colspan="4" class="py-4 text-center text-xs">Nenhuma matéria cadastrada.</td></tr>';
+
+            document.getElementById('admin-table-blog').innerHTML = blogDb.map(post => `
+                <tr class="border-b border-black/10 hover:bg-[#EBE7DD] transition-colors">
+                    <td class="py-4 text-xs font-bold">${post.data}</td>
+                    <td class="py-4 font-serif text-lg">${post.titulo}</td>
+                    <td class="py-4 text-right">
+                        <button onclick="editContent('blog', ${post.id})" class="text-[10px] uppercase font-bold tracking-widest text-[#1A365D] hover:underline mr-3">Editar</button>
+                        <button onclick="deleteContent('blog', ${post.id})" class="text-[10px] uppercase font-bold tracking-widest text-red-600 hover:underline">Remover</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('admin-table-projetos').innerHTML = projetosDb.map(proj => `
+                <tr class="border-b border-black/10 hover:bg-[#EBE7DD] transition-colors">
+                    <td class="py-3"><img src="${proj.imagem}" class="w-16 h-10 object-cover border border-black/20" onerror="this.src='https://via.placeholder.com/80x50?text=Proj'"></td>
+                    <td class="py-3 font-serif text-lg">${proj.titulo}</td>
+                    <td class="py-3 text-right">
+                        <button onclick="editContent('projeto', ${proj.id})" class="text-[10px] uppercase font-bold tracking-widest text-[#1A365D] hover:underline mr-3">Editar</button>
+                        <button onclick="deleteContent('projeto', ${proj.id})" class="text-[10px] uppercase font-bold tracking-widest text-red-600 hover:underline">Remover</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openAdminModal(type, id = null, edicaoId = null) {
+            document.getElementById('admin-crud-modal').classList.add('active');
+            document.getElementById('crud-type').value = type;
+            document.getElementById('crud-id').value = id || '';
+            document.getElementById('crud-old-edicao-id').value = edicaoId || '';
+            
+            const isEdit = id !== null;
+            document.getElementById('admin-modal-title').innerText = `${isEdit ? 'Editar' : 'Adicionar Novo(a)'} ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            
+            document.getElementById('field-numero').style.display = type === 'edicao' ? 'flex' : 'none';
+            document.getElementById('field-autor').style.display = type === 'revista' ? 'flex' : 'none';
+            document.getElementById('field-imagem').style.display = type === 'blog' ? 'none' : 'flex';
+            document.getElementById('field-editor-avancado').style.display = type === 'edicao' ? 'none' : 'flex';
+            
+            const selectEdicao = document.getElementById('crud-edicao-relacionada');
+            if (type === 'revista') {
+                document.getElementById('field-edicao-relacionada').style.display = 'flex';
+                selectEdicao.innerHTML = bancoDeDados.map(ed => `<option value="${ed.id}">${ed.numero} - ${ed.titulo}</option>`).join('');
+            } else {
+                document.getElementById('field-edicao-relacionada').style.display = 'none';
+            }
+
+            if(isEdit) {
+                if(type === 'edicao') {
+                    const item = bancoDeDados.find(e => e.id === id);
+                    document.getElementById('crud-titulo').value = item.titulo;
+                    document.getElementById('crud-numero').value = item.numero;
+                    document.getElementById('crud-imagem').value = item.capa;
+                } else if (type === 'revista') {
+                    const ed = bancoDeDados.find(e => e.id === edicaoId);
+                    const item = ed.artigos.find(a => a.id === id);
+                    selectEdicao.value = edicaoId;
+                    document.getElementById('crud-titulo').value = item.titulo;
+                    document.getElementById('crud-autor').value = item.autor;
+                    document.getElementById('crud-imagem').value = item.imagem;
+                    quillCrud.root.innerHTML = item.resumo;
+                } else if (type === 'blog') {
+                    const item = blogDb.find(e => e.id === id);
+                    document.getElementById('crud-titulo').value = item.titulo;
+                    quillCrud.root.innerHTML = item.resumo;
+                } else if (type === 'projeto') {
+                    const item = projetosDb.find(e => e.id === id);
+                    document.getElementById('crud-titulo').value = item.titulo;
+                    document.getElementById('crud-imagem').value = item.imagem;
+                    quillCrud.root.innerHTML = item.desc;
+                }
+            } else {
+                document.getElementById('admin-crud-form').reset();
+                quillCrud.root.innerHTML = '';
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-crud-modal').classList.remove('active');
+            document.getElementById('admin-crud-form').reset();
+            quillCrud.root.innerHTML = '';
+        }
+
+        function saveContent(e) {
+            e.preventDefault();
+            const type = document.getElementById('crud-type').value;
+            const id = document.getElementById('crud-id').value;
+            const titulo = document.getElementById('crud-titulo').value;
+            const htmlContent = quillCrud.root.innerHTML;
+            const imagem = document.getElementById('crud-imagem').value || '';
+
+            if (type === 'edicao') {
+                const numero = document.getElementById('crud-numero').value;
+                if (id) {
+                    const index = bancoDeDados.findIndex(e => e.id == id);
+                    bancoDeDados[index].titulo = titulo;
+                    bancoDeDados[index].numero = numero;
+                    bancoDeDados[index].capa = imagem;
+                } else {
+                    bancoDeDados.unshift({ id: Date.now(), numero, titulo, capa: imagem, artigos: [] });
+                }
+            } else if (type === 'revista') {
+                const autor = document.getElementById('crud-autor').value;
+                const newEdicaoId = parseInt(document.getElementById('crud-edicao-relacionada').value);
+                const oldEdicaoId = parseInt(document.getElementById('crud-old-edicao-id').value);
+                const novaRevista = { id: id ? parseInt(id) : Date.now(), titulo, autor, resumo: htmlContent, imagem };
+
+                if (id) {
+                    if (oldEdicaoId !== newEdicaoId) {
+                        const oldEd = bancoDeDados.find(e => e.id === oldEdicaoId);
+                        oldEd.artigos = oldEd.artigos.filter(a => a.id != id);
+                        bancoDeDados.find(e => e.id === newEdicaoId).artigos.unshift(novaRevista);
+                    } else {
+                        const ed = bancoDeDados.find(e => e.id === newEdicaoId);
+                        const idx = ed.artigos.findIndex(a => a.id == id);
+                        ed.artigos[idx] = novaRevista;
+                    }
+                } else {
+                    bancoDeDados.find(e => e.id === newEdicaoId).artigos.unshift(novaRevista);
+                }
+            } else if (type === 'blog') {
+                if (id) {
+                    const index = blogDb.findIndex(e => e.id == id);
+                    blogDb[index].titulo = titulo;
+                    blogDb[index].resumo = htmlContent;
+                } else {
+                    const hoje = new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' });
+                    blogDb.unshift({ id: Date.now(), data: hoje, titulo, resumo: htmlContent });
+                }
+            } else if (type === 'projeto') {
+                if (id) {
+                    const index = projetosDb.findIndex(e => e.id == id);
+                    projetosDb[index].titulo = titulo;
+                    projetosDb[index].imagem = imagem;
+                    projetosDb[index].desc = htmlContent;
+                } else {
+                    projetosDb.unshift({ id: Date.now(), titulo, imagem, desc: htmlContent });
+                }
+            }
+
+            closeAdminModal();
+            renderAdminTables();
+            renderPublicViews();
+        }
+
+        function saveSobreInfo(e) {
+            e.preventDefault();
+            sobreDb.texto = quillSobre.root.innerHTML;
+            renderPublicViews();
+            const msg = document.getElementById('sobre-success-msg');
+            msg.style.opacity = '1';
+            setTimeout(() => msg.style.opacity = '0', 3000);
+        }
+
+        function editContent(type, id, edicaoId = null) { openAdminModal(type, id, edicaoId); }
+
+        function deleteContent(type, id, edicaoId = null) {
+            if(confirm('Tem a certeza que deseja remover este item?')) {
+                if (type === 'edicao') {
+                    bancoDeDados = bancoDeDados.filter(e => e.id !== id);
+                } else if (type === 'revista') {
+                    const ed = bancoDeDados.find(e => e.id === edicaoId);
+                    ed.artigos = ed.artigos.filter(a => a.id !== id);
+                } else if (type === 'blog') {
+                    blogDb = blogDb.filter(e => e.id !== id);
+                } else if (type === 'projeto') {
+                    projetosDb = projetosDb.filter(e => e.id !== id);
+                }
+                renderAdminTables();
+                renderPublicViews();
+            }
+        }
+
+        function openEdicao(id) {
+            currentEdicaoId = id;
+            document.getElementById('search-artigos').value = ''; 
+            renderArtigos();
+            navigate('edicao-detalhe');
+        }
+        
+        // --- FUNÇÃO ADICIONADA: ABRIR TODAS AS REVISTAS (EDIÇÃO COMPLETA) ---
+        function openFullEditionPDF() {
+            const edicao = bancoDeDados.find(e => e.id === currentEdicaoId);
+            if(edicao) {
+                openPDF(edicao.titulo + ' - Todas as Revistas');
+            }
+        }
+
+        function openPDF(titulo) {
+            document.getElementById('pdf-title').innerText = titulo;
+            document.getElementById('pdf-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePDF() {
+            document.getElementById('pdf-modal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    </script>
+</body>
+</html>

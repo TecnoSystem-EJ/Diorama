@@ -18,7 +18,10 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false,
+        underline: false,
+      }),
       Underline,
       TextStyleKit,
       Link.configure({
@@ -81,9 +84,9 @@ export function RichTextEditor({
       .run();
   };
 
-  // Inserir vídeo
+  // Inserir link de vídeo
   const addVideo = () => {
-    const url = window.prompt("Digite a URL do vídeo:");
+    const url = window.prompt("Digite a URL do vídeo para inserir como link:");
 
     if (!url) {
       return;
@@ -242,7 +245,7 @@ export function RichTextEditor({
         {/* Vídeo */}
         <ToolbarButton
           onClick={addVideo}
-          title="Inserir vídeo"
+          title="Inserir link de vídeo"
         >
           ▣
         </ToolbarButton>

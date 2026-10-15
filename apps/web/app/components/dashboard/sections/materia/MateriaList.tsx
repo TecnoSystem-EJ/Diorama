@@ -1,8 +1,17 @@
+import { useEffect } from "react";
 import { useMateria } from "../../../../hooks/useMateria";
 import { MateriaRow } from "./MateriaRow";
 
-export function MateriaList() {
-  const { materias, isLoading, error, removeMateria } = useMateria();
+interface MateriaListProps {
+  refreshSignal?: number;
+}
+
+export function MateriaList({ refreshSignal = 0 }: MateriaListProps) {
+  const { materias, isLoading, error, removeMateria, refetch } = useMateria();
+
+  useEffect(() => {
+    refetch();
+  }, [refreshSignal, refetch]);
 
   if (isLoading) return <p className="text-sm text-neutral-500">Carregando matérias...</p>;
   if (error) return <p className="text-sm text-red-600">{error}</p>;
@@ -12,7 +21,10 @@ export function MateriaList() {
     <table className="w-full border-collapse">
       <thead>
         <tr className="border-b border-neutral-300">
-          <th className="pb-3" /><th className="pb-3" /><th className="pb-3" /><th className="pb-3" />
+          <th scope="col" className="pb-3 text-left"><span className="sr-only">Imagem de capa</span></th>
+          <th scope="col" className="pb-3 text-left"><span className="sr-only">Edição</span></th>
+          <th scope="col" className="pb-3 text-left"><span className="sr-only">Detalhes da matéria</span></th>
+          <th scope="col" className="pb-3 text-right"><span className="sr-only">Ações</span></th>
         </tr>
       </thead>
       <tbody>

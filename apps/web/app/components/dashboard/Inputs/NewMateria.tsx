@@ -11,11 +11,12 @@ interface NewMateriaProps {
     author: string;
     imageUrl: string;
     content: string;
-  }) => void;
+  }) => Promise<void>;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
-export function NewMateria({ onSubmit, onCancel }: NewMateriaProps) {
+export function NewMateria({ onSubmit, onCancel, isSubmitting = false }: NewMateriaProps) {
   const { editions, isLoading: editionsLoading } = useEditions();
 
   const [editionId, setEditionId] = useState("");
@@ -24,9 +25,9 @@ export function NewMateria({ onSubmit, onCancel }: NewMateriaProps) {
   const [imageUrl, setImageUrl] = useState("");
   const [content, setContent] = useState("");
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    onSubmit({ editionId, title, author, imageUrl, content });
+    await onSubmit({ editionId, title, author, imageUrl, content });
   }
 
   return (
@@ -40,7 +41,7 @@ export function NewMateria({ onSubmit, onCancel }: NewMateriaProps) {
           onChange={(e) => setEditionId(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm bg-white"
           required
-          disabled={editionsLoading}
+          disabled={editionsLoading || isSubmitting}
         >
           <option value="" disabled>
             {editionsLoading ? "Carregando edições..." : "Selecione uma edição"}
@@ -60,6 +61,7 @@ export function NewMateria({ onSubmit, onCancel }: NewMateriaProps) {
           onChange={(e) => setTitle(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"
           required
+          disabled={isSubmitting}
         />
       </div>
 
@@ -72,6 +74,7 @@ export function NewMateria({ onSubmit, onCancel }: NewMateriaProps) {
           onChange={(e) => setAuthor(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"
           required
+          disabled={isSubmitting}
         />
       </div>
 
@@ -84,6 +87,7 @@ export function NewMateria({ onSubmit, onCancel }: NewMateriaProps) {
           onChange={(e) => setImageUrl(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"
           placeholder="https://..."
+          disabled={isSubmitting}
         />
       </div>
 
@@ -95,14 +99,15 @@ export function NewMateria({ onSubmit, onCancel }: NewMateriaProps) {
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
-        <button type="button" onClick={onCancel} className="text-sm font-semibold text-neutral-500 hover:text-black">
+        <button type="button" onClick={onCancel} className="text-sm font-semibold text-neutral-500 hover:text-black" disabled={isSubmitting}>
           CANCELAR
         </button>
         <button
           type="submit"
-          className="bg-black text-white text-sm font-semibold px-5 py-2.5 hover:bg-neutral-800 transition"
+          disabled={isSubmitting}
+          className="bg-black text-white text-sm font-semibold px-5 py-2.5 hover:bg-neutral-800 transition disabled:opacity-50"
         >
-          CRIAR MATÉRIA
+          {isSubmitting ? "CRIANDO..." : "CRIAR MATÉRIA"}
         </button>
       </div>
     </form>

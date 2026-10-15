@@ -26,9 +26,6 @@ export function MateriaRow({ materia, onRemove }: MateriaRowProps) {
         <p className="text-sm text-neutral-500">{materia.author}</p>
       </td>
       <td className="py-4 text-right whitespace-nowrap">
-        <button className="text-sm font-semibold tracking-wide text-blue-700 hover:underline mr-6">
-          EDITAR
-        </button>
         <button
           onClick={handleRemoveClick}
           className="text-sm font-semibold tracking-wide text-red-600 hover:underline"

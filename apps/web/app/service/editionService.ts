@@ -1,12 +1,23 @@
+import { API_ENDPOINTS, TOKEN_STORAGE_KEY, buildApiUrl } from "../config/api";
 import { Edition } from "../types/edition";
 
-const BASE_URL = "/"; 
+const BASE_URL = buildApiUrl(API_ENDPOINTS.edicoes);
 
 function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem("TOKEN");
+  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
   return {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(token ? { Authorization: "Token " + token } : {}),
+  };
+}
+
+function mapEdition(item: Record<string, unknown>): Edition {
+  return {
+    id: String(item.id ?? ""),
+    number: Number(item.numeroTag ?? 0),
+    title: String(item.titulo ?? ""),
+    coverUrl: String(item.capaUrl ?? ""),
+    documentsCount: Number(item.documentsCount ?? 0),
   };
 }
 
@@ -20,7 +31,24 @@ export async function fetchEditions(): Promise<Edition[]> {
   }
 
   const data = await response.json();
-  return data.editions as Edition[];
+  const editions = (Array.isArray(data?.edicoes) ? data.edicoes : []) as Record<string, unknown>[];
+  return editions.map(mapEdition);
+}
+
+export async function createEdition(data: { title: string; number: number; coverUrl: string }): Promise<void> {
+  const response = await fetch(BASE_URL, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      titulo: data.title,
+      numeroTag: String(data.number),
+      capaUrl: data.coverUrl,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Não foi possível criar a edição.");
+  }
 }
 
 export async function deleteEdition(id: string): Promise<void> {

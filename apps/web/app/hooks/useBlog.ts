@@ -25,12 +25,23 @@ export function useBlog() {
 
   const removeBlog = useCallback(
     async (id: string) => {
-      const previous = blogs;
+      const removedBlog = blogs.find((blog) => blog.id === id);
+      const removedIndex = blogs.findIndex((blog) => blog.id === id);
       setBlogs((current) => current.filter((e) => e.id !== id));
       try {
         await deleteBlog(id);
       } catch (err) {
-        setBlogs(previous);
+        if (removedBlog && removedIndex >= 0) {
+          setBlogs((current) => {
+            if (current.some((blog) => blog.id === id)) {
+              return current;
+            }
+
+            const updated = [...current];
+            updated.splice(Math.min(removedIndex, updated.length), 0, removedBlog);
+            return updated;
+          });
+        }
         setError(err instanceof Error ? err.message : "Erro ao remover blog.");
       }
     },

@@ -25,12 +25,23 @@ export function useMateria() {
 
   const removeMateria = useCallback(
     async (id: string) => {
-      const previous = materias;
+      const removedMateria = materias.find((materia) => materia.id === id);
+      const removedIndex = materias.findIndex((materia) => materia.id === id);
       setMaterias((current) => current.filter((m) => m.id !== id));
       try {
         await deleteMateria(id);
       } catch (err) {
-        setMaterias(previous);
+        if (removedMateria && removedIndex >= 0) {
+          setMaterias((current) => {
+            if (current.some((materia) => materia.id === id)) {
+              return current;
+            }
+
+            const updated = [...current];
+            updated.splice(Math.min(removedIndex, updated.length), 0, removedMateria);
+            return updated;
+          });
+        }
         setError(err instanceof Error ? err.message : "Erro ao remover matéria.");
       }
     },

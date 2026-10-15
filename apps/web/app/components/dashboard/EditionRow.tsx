@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import { Edition } from "../../types/edition";
 
@@ -20,12 +21,7 @@ export function EditionRow({ edition, onRemove }: EditionRowProps) {
     <tr className="border-b border-neutral-200">
       <td className="py-4 pr-4 w-16">
         <div className="w-12 h-12 relative rounded overflow-hidden bg-neutral-100">
-          <Image
-            src={edition.coverUrl}
-            alt={`Capa da Edição ${edition.number}`}
-            fill
-            className="object-cover"
-          />
+          <Image src={edition.coverUrl} alt={`Capa da Edição ${edition.number}`} fill className="object-cover" />
         </div>
       </td>
       <td className="py-4 pr-4 text-sm font-medium whitespace-nowrap">
@@ -36,12 +32,12 @@ export function EditionRow({ edition, onRemove }: EditionRowProps) {
         {edition.documentsCount} Documento{edition.documentsCount !== 1 ? "s" : ""}
       </td>
       <td className="py-4 text-right whitespace-nowrap">
-        
+        <Link
           href={`/painel/edicoes/${edition.id}/editar`}
           className="text-sm font-semibold tracking-wide text-blue-700 hover:underline mr-6"
-        <a>
+        >
           EDITAR
-        </a>
+        </Link>
         <button
           onClick={handleRemoveClick}
           className="text-sm font-semibold tracking-wide text-red-600 hover:underline"

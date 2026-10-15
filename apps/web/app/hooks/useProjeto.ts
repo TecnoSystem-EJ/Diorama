@@ -25,12 +25,23 @@ export function useProjeto() {
 
   const removeProjeto = useCallback(
     async (id: string) => {
-      const previous = projetos;
+      const removedProjeto = projetos.find((projeto) => projeto.id === id);
+      const removedIndex = projetos.findIndex((projeto) => projeto.id === id);
       setProjetos((current) => current.filter((p) => p.id !== id));
       try {
         await deleteProjeto(id);
       } catch (err) {
-        setProjetos(previous);
+        if (removedProjeto && removedIndex >= 0) {
+          setProjetos((current) => {
+            if (current.some((projeto) => projeto.id === id)) {
+              return current;
+            }
+
+            const updated = [...current];
+            updated.splice(Math.min(removedIndex, updated.length), 0, removedProjeto);
+            return updated;
+          });
+        }
         setError(err instanceof Error ? err.message : "Erro ao remover projeto.");
       }
     },

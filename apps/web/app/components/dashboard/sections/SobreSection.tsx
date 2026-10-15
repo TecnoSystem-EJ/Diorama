@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { fetchSobreContent, updateSobreContent } from "../../../service/sobreService";
 import { RichTextEditor } from "../../ui/RichTextEditor";
 import { SectionHeader } from "./SectionHeader";
 
@@ -21,18 +22,24 @@ const initialContent = `
 export function SobreSection() {
   const [content, setContent] = useState(initialContent);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchSobreContent().then((savedContent) => {
+      if (savedContent) {
+        setContent(savedContent);
+      }
+    });
+  }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveError(null);
 
     try {
-      // Futuramente:
-      // await api.put("/sobre", { content });
-
-      console.log("Conteúdo salvo:", content);
-
-      // Simulação de salvamento
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await updateSobreContent(content);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Não foi possível guardar as alterações.");
     } finally {
       setIsSaving(false);
     }
@@ -40,25 +47,22 @@ export function SobreSection() {
 
   return (
     <section className="w-full">
-      {/* Título da página */}
       <SectionHeader title='Editar Página "Sobre Nós"' />
 
-      {/* Área do editor */}
       <div className="mt-8 max-w-4xl border border-[#d9d4ca] bg-[#f5f2eb] px-8 py-8">
-        {/* Label */}
         <div className="mb-3">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#111]">
             Editor avançado (adicione textos, imagens, negritos)
           </p>
         </div>
 
-        {/* Rich Text Editor */}
         <RichTextEditor
           value={content}
           onChange={setContent}
         />
 
-        {/* Botão */}
+        {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
+
         <div className="mt-6">
           <button
             type="button"

@@ -34,13 +34,25 @@ export function useEditions(): UseEditionsReturn {
   }, [loadEditions]);
 
   const removeEdition = useCallback(async (id: string) => {
-    const previousEditions = editions;
+    const removedEdition = editions.find((edition) => edition.id === id);
+    const removedIndex = editions.findIndex((edition) => edition.id === id);
+
     setEditions((current) => current.filter((edition) => edition.id !== id));
 
     try {
       await deleteEdition(id);
     } catch (err) {
-      setEditions(previousEditions);
+      if (removedEdition && removedIndex >= 0) {
+        setEditions((current) => {
+          if (current.some((edition) => edition.id === id)) {
+            return current;
+          }
+
+          const updated = [...current];
+          updated.splice(Math.min(removedIndex, updated.length), 0, removedEdition);
+          return updated;
+        });
+      }
       setError(err instanceof Error ? err.message : "Erro ao remover edição.");
     }
   }, [editions]);

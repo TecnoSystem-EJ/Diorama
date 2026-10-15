@@ -40,9 +40,9 @@ export default function Header() {
                 </h1>
             </div>
             <div className="flex text-black uppercase gap-8 items-center font-bold">
-                <p className="cursor-pointer hover:opacity-50 transition-opacity">revista</p>
-                <p className="cursor-pointer hover:opacity-50 transition-opacity">livros</p>
-                <p className="cursor-pointer hover:opacity-50 transition-opacity">extra!</p>
+                <p className="cursor-pointer hover:opacity-50 transition-opacity"><Link href="/#">revista</Link></p>
+                <p className="cursor-pointer hover:opacity-50 transition-opacity"><Link href="/#">livros</Link></p>
+                <p className="cursor-pointer hover:opacity-50 transition-opacity"><Link href="/blog">extra!</Link></p>
             </div>
         </div>
       </header>

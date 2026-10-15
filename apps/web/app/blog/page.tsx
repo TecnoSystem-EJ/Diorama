@@ -25,7 +25,7 @@ export default async function Page() {
                   />
                 </div>
 
-                <h2 className="font-serif text-xl uppercase tracking-wide mb-2">
+                <h2 className="font-extrabold text-xl uppercase tracking-wide mb-2">
                   {artigo.titulo}
                 </h2>
 
@@ -36,7 +36,7 @@ export default async function Page() {
 
               <Link 
                 href={`/blog/${artigo.slug}`}
-                className="inline-block uppercase font-bold text-xs tracking-widest border border-black py-2 px-4 text-center hover:bg-black hover:text-white transition-colors duration-300"
+                className="inline-block rounded-full uppercase font-bold text-xs tracking-widest border border-black py-2 px-4 text-center hover:bg-black hover:text-white transition-colors duration-300"
               >
                 Ler artigo <i className="bi bi-arrow-right"></i>
               </Link>

@@ -76,16 +76,15 @@ export default function Header() {
                         <p>Livros</p>
                     </div>
                     <div className="grid grid-cols-2 items-center mb-8 border-b border-white pb-2 w-full">
-                        <p><Link href="/extra">extra!</Link></p>
+                        <p className='hover:opacity-50 transition-opacity duration-300 cursor-pointer'><Link href="/blog">extra!</Link></p>
                         <p>Loja</p>
                     </div>
                     <div className="grid grid-cols-2 items-center mb-8 border-b border-white pb-2 w-full">
-                        <p className='italic'>READ IN ENGLISH</p>
                         <p className='hover:opacity-50 transition-opacity duration-300 cursor-pointer'><Link href="/about">Sobre</Link></p>
+                        <p className='hover:opacity-50 transition-opacity duration-300 cursor-pointer'><Link href="/about/contato">Contato</Link></p>
                     </div>
                     <div className="grid grid-cols-2 items-center mb-8 border-b border-white pb-2 w-full">
-                        <p>Contato</p>
-                        <p>Onde encontrar</p>
+                        <p className='hover:opacity-50 transition-opacity duration-300 cursor-pointer'><Link href="/about/ondeencontrar">Onde encontrar</Link></p>
                     </div>
                 </div>
 

@@ -142,15 +142,15 @@ export default function Home() {
 
             <div className='mt-8 flex gap-3'>
               <button>
-                <i class="bi bi-instagram cursor:pointer hover:opacity-50"></i>
+                <i className="bi bi-instagram cursor:pointer hover:opacity-50"></i>
               </button>
 
               <button>
-                <i class="bi bi-facebook cursor:pointer hover:opacity-50"></i>
+                <i className="bi bi-facebook cursor:pointer hover:opacity-50"></i>
               </button>
 
               <button>
-                <i class="bi bi-twitter-x cursor:pointer hover:opacity-50"></i>
+                <i className="bi bi-twitter-x cursor:pointer hover:opacity-50"></i>
               </button>
             </div>
 

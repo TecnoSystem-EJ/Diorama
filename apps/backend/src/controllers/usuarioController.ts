@@ -12,7 +12,7 @@ export class UsuarioController {
 
         const usuarios = await service.listar();
 
-        return res.json({quantidade: usuarios.length, usuarios:usuarios});
+        return res.json({quantidade: usuarios.length, usuarios:usuarios.map(({ senhaHash, ...usuario }) => usuario)});
 
     }
 
@@ -31,7 +31,8 @@ export class UsuarioController {
         if(!usuario) return res.status(404).json({mensagem: "usuario não encontrado."})
 
 
-        return res.json({usuario:usuario});
+        const { senhaHash, ...publicUsuario } = usuario;
+        return res.json({usuario:publicUsuario});
 
     }
 
@@ -66,7 +67,8 @@ export class UsuarioController {
 
             const usuario = await service.cadastrar(dataUsuario)
 
-            res.status(201).json({ mensagem: "Usuário Cadastrado com sucesso!", usuario: usuario });
+            const { senhaHash, ...publicUsuario } = usuario;
+            res.status(201).json({ mensagem: "Usuário Cadastrado com sucesso!", usuario: publicUsuario });
 
         } catch (error) {
             res.status(400).json({error: error})
@@ -124,7 +126,8 @@ export class UsuarioController {
         try{
             const usuario = await service.editar(numId, dataUsuario);
 
-            res.json({mensagem: "Usuário editado com sucesso!", usuario: usuario})
+            const { senhaHash, ...publicUsuario } = usuario;
+            res.json({mensagem: "Usuário editado com sucesso!", usuario: publicUsuario})
 
         } catch (error) {
             res.status(400).json({error: error});

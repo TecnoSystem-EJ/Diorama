@@ -17,7 +17,7 @@ export function ProjetoRow({ projeto, onRemove }: ProjetoRowProps) {
     <tr className="border-b border-neutral-200">
       <td className="py-4 pr-4 w-16">
         <div className="w-12 h-12 relative rounded overflow-hidden bg-neutral-100">
-          <Image src={projeto.imageUrl} alt={projeto.title} fill className="object-cover" />
+          <Image unoptimized src={projeto.imageUrl} alt={projeto.title} fill className="object-cover" />
         </div>
       </td>
       <td className="py-4 pr-6 font-serif text-lg">{projeto.title}</td>

@@ -2,6 +2,8 @@ import type { Request, Response } from "express";
 import { RevistaService } from "../services/revistaService.js";
 import { fileUtils } from "../utils/fileUtils.js";
 import { Prisma } from "@diorama/db";
+import { PUBLIC_API_URL } from "../config/enviroments.js";
+import { cleanHtml } from "../utils/cleanHtml.js";
 
 const service = new RevistaService();
 
@@ -26,10 +28,10 @@ export class RevistaController {
 
         const {id} = req.params;
 
-        
+
         if(!id) return res.status(400).json({mensagem: "O id não foi fornecido."});
 
-        
+
 
         const revista = await service.buscar(id);
 
@@ -44,7 +46,7 @@ export class RevistaController {
 
 
         const { edicaoId, titulo, conteudo_html} = req.body;
-        const files = req.files as ArquivosRevista; 
+        const files = (req.files ?? {}) as ArquivosRevista;
 
 
         const revistaPdf = files.revistaPdf?.[0];
@@ -71,17 +73,18 @@ export class RevistaController {
         }
 
         try {
-            
-            const baseUrl = `${req.protocol}://${req.get('host')}/static`;
+
+            const baseUrl = `${PUBLIC_API_URL}/static`;
             const imagemDestaqueUrl = baseUrl + '/imagemDestaqueRevistas/' + imagemDestaque?.filename;
             const revistaPdfUrl = baseUrl + '/pdfRevistas/' + revistaPdf?.filename;
 
             const dataRevista = {
                 edicaoId: edicaoId,
                 titulo: titulo,
-                conteudo_html: conteudo_html,
+                conteudo_html: cleanHtml(conteudo_html),
                 imagemDestaque: imagemDestaqueUrl,
-                pdfUrl: revistaPdfUrl
+                pdfUrl: revistaPdfUrl,
+                ...(typeof req.body.autor === "string" && req.body.autor.trim() ? { autores: [req.body.autor.trim()] } : {}),
             }
 
             const revista = await service.cadastrar(dataRevista)
@@ -92,20 +95,20 @@ export class RevistaController {
             fileUtils.apagarArquivo(revistaPdf?.path);
             fileUtils.apagarArquivo(imagemDestaque?.path);
             res.status(400).json({error: error})
-            
+
         }
-    
+
     }
 
     async editar(req:Request, res:Response){
 
         const {id} = req.params;
-        const files = req.files as ArquivosRevista; 
+        const files = (req.files ?? {}) as ArquivosRevista;
 
 
-        
 
-        const baseUrl = `${req.protocol}://${req.get('host')}/static`;
+
+        const baseUrl = `${PUBLIC_API_URL}/static`;
 
         const dataRevista:Prisma.RevistaUpdateInput={};
 
@@ -116,7 +119,7 @@ export class RevistaController {
         }
 
         if (req.body.conteudo_html) {
-            dataRevista.conteudo_html = req.body.conteudo_html;
+            dataRevista.conteudo_html = cleanHtml(req.body.conteudo_html);
         }
 
         if (files) {
@@ -125,14 +128,14 @@ export class RevistaController {
                 const imagemDestaque = files.imagemDestaque?.[0];
                 dataRevista.imagemDestaque = baseUrl + '/imagemDestaqueRevistas/' + imagemDestaque?.filename;
             }
-            
-            
+
+
 
             if(files.revistaPdf){
                 const revistaPdf = files.revistaPdf?.[0];
                 dataRevista.pdfUrl = baseUrl + '/pdfRevistas/' + revistaPdf?.filename;
             }
-            
+
         }
 
         if(!dataRevista.pdfUrl && !dataRevista.imagemDestaque && !dataRevista.conteudo_html && !dataRevista.titulo) return res.status(400).json({mensagem: "Nenhum dado foi fornecido para alteração do regsitro."})
@@ -144,10 +147,10 @@ export class RevistaController {
             fileUtils.apagarArquivo(files.revistaPdf?.[0]?.path);
             fileUtils.apagarArquivo(files.imagemDestaque?.[0]?.path);
             res.status(400).json({error: error});
-            
+
         }
 
-        
+
     }
 
     async desativarRegistro(req:Request, res:Response) {
@@ -160,7 +163,7 @@ export class RevistaController {
             res.json({mensagem: "Registro desativado com sucesso!"});
         }catch (error) {
             res.status(400).json({error: error});
-            
+
         }
     }
 

@@ -1,11 +1,11 @@
 import "express";
-import { UsuarioRole } from "@diorama/db";
+import type { UsuarioRole } from "@diorama/db";
 
 declare global {
     namespace Express {
         interface Request {
             user: {
-                id: string;
+                id: number;
                 role: UsuarioRole;
             };
         }

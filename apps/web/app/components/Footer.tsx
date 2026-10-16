@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import CC from '../imgs/CC.png';
 import React, { useState } from 'react';
-import Link from "next/link";
+
 
 export default function Footer() {
     const [email, setEmail] = useState('');

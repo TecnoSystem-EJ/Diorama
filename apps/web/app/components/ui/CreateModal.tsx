@@ -86,7 +86,6 @@ export function CreateModal({ isOpen, onClose, title, children, size = "default"
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
       onClick={onClose}
-      aria-hidden="true"
     >
       <div
         ref={dialogRef}

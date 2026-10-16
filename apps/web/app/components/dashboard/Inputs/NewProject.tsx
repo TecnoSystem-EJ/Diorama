@@ -22,8 +22,9 @@ export function NewProjeto({ onSubmit, onCancel, isSubmitting = false }: NewProj
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">TÍTULO</label>
+        <label htmlFor="project-title" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">TÍTULO</label>
         <input
+          id="project-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"
@@ -33,8 +34,11 @@ export function NewProjeto({ onSubmit, onCancel, isSubmitting = false }: NewProj
       </div>
 
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">URL</label>
+        <label htmlFor="project-image" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">URL DA IMAGEM</label>
         <input
+          id="project-image"
+          type="url"
+          required
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"

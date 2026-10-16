@@ -1,25 +1,26 @@
 import { Router } from "express";
 import { RevistaController } from "../controllers/revistaController.js";
 import { uploadMiddleware } from "../middlewares/uploadMiddleware.js";
-import { authMiddleware } from "../middlewares/authMilddleware.js";
+import { requireAdmin } from "../middlewares/authMilddleware.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const revistaRoutes:Router = Router();
 const controller = new RevistaController();
 
-revistaRoutes.get("/",controller.listar);
+revistaRoutes.get("/", asyncHandler(controller.listar));
 
-revistaRoutes.get("/:id", controller.buscarPorId);
+revistaRoutes.get("/:id", asyncHandler(controller.buscarPorId));
 
-revistaRoutes.post("/", authMiddleware ,uploadMiddleware.fields([
+revistaRoutes.post("/", ...requireAdmin, uploadMiddleware.fields([
     {name:"revistaPdf", maxCount:1},
     {name:"imagemDestaque", maxCount:1}
-]),controller.criar);
+]),asyncHandler(controller.criar));
 
-revistaRoutes.put("/:id", authMiddleware, uploadMiddleware.fields([
+revistaRoutes.put("/:id", ...requireAdmin, uploadMiddleware.fields([
     {name:"revistaPdf", maxCount:1},
     {name:"imagemDestaque", maxCount:1}
-]), controller.editar);
+]), asyncHandler(controller.editar));
 
-revistaRoutes.delete("/:id", authMiddleware, controller.desativarRegistro);
+revistaRoutes.delete("/:id", ...requireAdmin, asyncHandler(controller.desativarRegistro));
 
 export default revistaRoutes;

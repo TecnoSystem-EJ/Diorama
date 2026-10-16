@@ -60,3 +60,9 @@ body {
 .ProseMirror a {
   text-decoration: underline;
 }
+.editorial-content p, .editorial-content ul, .editorial-content ol, .editorial-content blockquote { margin-bottom: 1.25rem; }
+.editorial-content h1, .editorial-content h2, .editorial-content h3 { font-family: Georgia, serif; font-size: 1.6em; margin: 1.5rem 0 1rem; }
+.editorial-content a { text-decoration: underline; }
+.editorial-content img { max-width: 100%; height: auto; }
+.editorial-content ul { list-style: disc; padding-left: 1.5rem; }
+.editorial-content ol { list-style: decimal; padding-left: 1.5rem; }

@@ -17,7 +17,7 @@ export function MateriaRow({ materia, onRemove }: MateriaRowProps) {
     <tr className="border-b border-neutral-200">
       <td className="py-4 pr-4 w-16">
         <div className="w-12 h-12 relative rounded overflow-hidden bg-neutral-100">
-          <Image src={materia.imageUrl} alt={materia.title} fill className="object-cover" />
+          <Image unoptimized src={materia.imageUrl} alt={materia.title} fill className="object-cover" />
         </div>
       </td>
       <td className="py-4 pr-6 text-sm text-neutral-500 whitespace-nowrap">{materia.editionTitle}</td>

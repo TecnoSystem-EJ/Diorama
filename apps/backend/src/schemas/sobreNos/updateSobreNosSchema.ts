@@ -1,5 +1,5 @@
 import * as z from "zod";
-import sobreNosSchema from "./sobreNosSchema";
+import sobreNosSchema from "./sobreNosSchema.js";
 
 
 const updateSobreNosSchema = z

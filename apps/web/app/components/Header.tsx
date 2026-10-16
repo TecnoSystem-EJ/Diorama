@@ -40,8 +40,8 @@ export default function Header() {
                 </h1>
             </div>
             <div className="flex text-black uppercase gap-8 text-xl font-bold items-baseline">
-                <p className="font-light cursor-pointer hover:font-black hover:opacity-80 transition-opacity"><Link href="/#">revista</Link></p>
-                <p className="font-light cursor-pointer hover:font-black hover:opacity-80 transition-opacity"><Link href="/#">livros</Link></p>
+                <p className="font-light cursor-pointer hover:font-black hover:opacity-80 transition-opacity"><Link href="/edicoes">revista</Link></p>
+                <p className="font-light cursor-pointer hover:font-black hover:opacity-80 transition-opacity"><Link href="/projetos">projetos</Link></p>
                 <p className="font-light cursor-pointer hover:font-black hover:opacity-80 transition-opacity"><Link href="/blog">extra!</Link></p>
             </div>
         </div>

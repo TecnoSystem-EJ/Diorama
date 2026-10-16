@@ -1,5 +1,5 @@
 import * as z from "zod";
-import edicoesSchema from "./edicoesSchema";
+import edicoesSchema from "./edicoesSchema.js";
 
 
 const criarEdicoesSchema = z

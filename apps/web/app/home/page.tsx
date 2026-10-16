@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { NewsletterForm } from "../components/NewsletterForm";
+import { useEditions } from "../hooks/useEdicao";
 
 export default function Home() {
   const [position, setPosition] = useState({ x: 50, y: 50 });
   const [aberto, setAberto] = useState(false);
+  const { editions, error: editionsError } = useEditions();
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     const x = (e.clientX / window.innerWidth) * 100;
@@ -36,7 +39,7 @@ export default function Home() {
       {/* CONTEÚDO */}
       <div className="relative z-10 min-h-screen text-[#F4F1EA]">
         {/* LOGO + MENU + NEWSLETTER */}
-        <div className="absolute left-1/2 top-1/2 flex w-full max-w-[1400px] -translate-x-1/2 -translate-y-1/2 justify-between px-2 md:px-12">
+        <div className="relative mx-auto flex w-full max-w-[1400px] py-20 justify-between px-6 md:px-12 flex-col gap-12 md:flex-row">
           
           {/* LOGO + MENU */}
           <div>
@@ -80,35 +83,9 @@ export default function Home() {
                     }`}
                   >
                     <div className="flex flex-col gap-4 text-sm normal-case tracking-[0.15em]">
-                      
-                      <Link
-                        href="/edicoes/vegetalidades"
-                        className="transition-opacity duration-300 hover:opacity-50"
-                      >
-                        VEGETALIDADES
-                      </Link>
-
-                      <Link
-                        href="/edicoes/as-infancias"
-                        className="transition-opacity duration-300 hover:opacity-50"
-                      >
-                        AS INFÂNCIAS
-                      </Link>
-
-                      <Link
-                        href="/edicoes/as-plantas-os-bichos"
-                        className="transition-opacity duration-300 hover:opacity-50"
-                      >
-                        AS PLANTAS, OS BICHOS
-                      </Link>
-
-                      <Link
-                        href="/edicoes/a-terra-as-aguas"
-                        className="transition-opacity duration-300 hover:opacity-50"
-                      >
-                        A TERRA, AS ÁGUAS
-                      </Link>
-
+                      <Link href="/edicoes">Todas as edições</Link>
+                      {editions.map(edition => <Link key={edition.id} href={`/edicoes/${edition.id}`}>{edition.title}</Link>)}
+                      {editionsError && <p role="alert" className="text-sm">{editionsError}</p>}
                     </div>
                   </div>
                 </div>
@@ -131,7 +108,7 @@ export default function Home() {
 
                 {/* SOBRE NÓS */}
                 <Link
-                  href="/sobrenos"
+                  href="/about"
                   className="transition-opacity duration-300 hover:opacity-50"
                 >
                   SOBRE NÓS
@@ -155,7 +132,7 @@ export default function Home() {
             </div>
 
             {/* FOOTER */}
-            <footer className="absolute bottom-[-120px] left-1/2 -translate-x-1/2 text-center">
+            <footer className="mt-12 text-left">
               <p className="text-[10px] uppercase tracking-[0.3em] text-white/60">
                 © {new Date().getFullYear()} Diorama 
                 <br />
@@ -174,34 +151,19 @@ export default function Home() {
                 <span className="italic">100% de graça</span>
               </h2>
 
-              <form className="mt-8 flex flex-col gap-5">
-
-                <input
-                  type="email"
-                  placeholder="Seu email"
-                  className="border-b border-white/40 bg-transparent py-2 text-sm outline-none placeholder:text-white/50 focus:border-white"
-                />
-
-                <button
-                  type="submit"
-                  className="ml-auto border border-white px-8 py-3 text-[10px] uppercase tracking-[0.3em] transition hover:bg-white hover:text-black"
-                >
-                  RECEBER
-                </button>
-
-              </form>
+              <NewsletterForm />
 
               <div className="mt-8 flex justify-end gap-8 text-[10px] uppercase tracking-widest">
 
                 <Link
-                  href="#"
+                  href="/newsletter"
                   className="border-b border-white/50 pb-1 hover:border-white"
                 >
                   CONHECER AS NEWSLETTERS
                 </Link>
 
                 <Link
-                  href="/Login"
+                  href="/login"
                   className="border-b border-white/50 pb-1 hover:border-white"
                 >
                   FAZER LOGIN

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createEdition } from "../../../service/editionService";
+import { createEdition, type EditionInput } from "../../../service/editionService";
 import { SectionHeader } from "./SectionHeader";
 import { EditionList } from "../EditionList";
 import { CreateModal } from "../../ui/CreateModal";
@@ -13,7 +13,7 @@ export function EdicaoSection() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [refreshSignal, setRefreshSignal] = useState(0);
 
-  async function handleCreate(data: { title: string; number: number; coverUrl: string }) {
+  async function handleCreate(data: EditionInput) {
     setIsSubmitting(true);
     setCreateError(null);
 

@@ -230,7 +230,8 @@ describe("EdicaoController", () => {
       const erro = new Error("Falha ao editar");
       serviceInstance.editar.mockRejectedValue(erro);
 
-      const req = mockReq({ titulo: "Novo", file: { path: "/tmp/capa.png" } }, { id: "1" });
+      const req = mockReq({ titulo: "Novo" }, { id: "1" });
+      req.file = { path: "/tmp/capa.png" };
       const res = mockRes();
 
       await controller.editar(req, res);

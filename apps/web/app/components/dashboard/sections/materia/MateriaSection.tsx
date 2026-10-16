@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createMateria } from "../../../../service/materiaService";
+import { createMateria, type MateriaInput } from "../../../../service/materiaService";
 import { SectionHeader } from "../SectionHeader";
 import { MateriaList } from "./MateriaList";
 import { CreateModal } from "../../../ui/CreateModal";
@@ -13,13 +13,7 @@ export function MateriasSection() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [refreshSignal, setRefreshSignal] = useState(0);
 
-  async function handleCreate(data: {
-    editionId: string;
-    title: string;
-    author: string;
-    imageUrl: string;
-    content: string;
-  }) {
+  async function handleCreate(data: MateriaInput) {
     setIsSubmitting(true);
     setCreateError(null);
 

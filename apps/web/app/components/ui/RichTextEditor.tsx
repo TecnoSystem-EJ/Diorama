@@ -6,6 +6,7 @@ import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { TextStyleKit } from "@tiptap/extension-text-style";
+import { useEffect } from "react";
 
 interface RichTextEditorProps {
   value: string;
@@ -31,7 +32,7 @@ export function RichTextEditor({
       }),
       Image.configure({
         inline: false,
-        allowBase64: true,
+        allowBase64: false,
       }),
     ],
     content: value,
@@ -42,6 +43,10 @@ export function RichTextEditor({
 
     immediatelyRender: false,
   });
+
+  useEffect(() => {
+    if (editor && editor.getHTML() !== value) editor.commands.setContent(value, { emitUpdate: false });
+  }, [editor, value]);
 
   if (!editor) {
     return null;
@@ -269,6 +274,7 @@ export function RichTextEditor({
       {/* EDITOR */}
       <EditorContent
         editor={editor}
+        aria-label="Conteúdo"
         className="
           min-h-50
           px-4
@@ -301,9 +307,10 @@ function ToolbarButton({
     <button
       type="button"
       title={title}
+      aria-label={title}
+      onClick={onClick}
       onMouseDown={(e) => {
         e.preventDefault();
-        onClick();
       }}
       className={`
         flex

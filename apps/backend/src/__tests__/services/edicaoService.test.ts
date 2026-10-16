@@ -19,7 +19,7 @@ describe("EdicaoService", () => {
 
       const result = await service.listar();
 
-      expect(mockedDb.edicao.findMany).toHaveBeenCalledWith();
+      expect(mockedDb.edicao.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { deleted: false } }));
       expect(result).toEqual(edicoes);
     });
   });
@@ -31,7 +31,7 @@ describe("EdicaoService", () => {
 
       const result = await service.buscar("1");
 
-      expect(mockedDb.edicao.findUnique).toHaveBeenCalledWith({ where: { id: "1" } });
+      expect(mockedDb.edicao.findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "1", deleted: false } }));
       expect(result).toEqual(edicao);
     });
 

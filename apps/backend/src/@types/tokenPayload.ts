@@ -1,6 +1,6 @@
-import { UsuarioRole } from "@diorama/db";
+import type { UsuarioRole } from "@diorama/db";
 
 export interface TokenPayload {
-    id: string;
+    id: number;
     role: UsuarioRole;
 }

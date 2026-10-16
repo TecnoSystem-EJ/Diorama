@@ -23,21 +23,26 @@ export function SobreSection() {
   const [content, setContent] = useState(initialContent);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchSobreContent().then((savedContent) => {
       if (savedContent) {
         setContent(savedContent);
       }
-    });
+    }).catch(err => setSaveError(err instanceof Error ? err.message : "Não foi possível carregar o conteúdo."))
+      .finally(() => setIsLoading(false));
   }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
     setSaveError(null);
+    setSaved(false);
 
     try {
       await updateSobreContent(content);
+      setSaved(true);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Não foi possível guardar as alterações.");
     } finally {
@@ -48,6 +53,7 @@ export function SobreSection() {
   return (
     <section className="w-full">
       <SectionHeader title='Editar Página "Sobre Nós"' />
+      {isLoading && <p>Carregando conteúdo...</p>}
 
       <div className="mt-8 max-w-4xl border border-[#d9d4ca] bg-[#f5f2eb] px-8 py-8">
         <div className="mb-3">
@@ -62,12 +68,13 @@ export function SobreSection() {
         />
 
         {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
+        {saved && <p role="status" className="mt-4 text-sm text-green-700">Alterações salvas.</p>}
 
         <div className="mt-6">
           <button
             type="button"
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={isSaving || isLoading}
             className="
               min-w-56.5
               bg-black

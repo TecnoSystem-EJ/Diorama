@@ -1,15 +1,8 @@
-import { API_ENDPOINTS, TOKEN_STORAGE_KEY, buildApiUrl } from "../config/api";
+import { API_ENDPOINTS, buildApiUrl } from "../config/api";
 import { Edition } from "../types/edition";
+import { authHeaders, readResponse } from "./http";
 
 const BASE_URL = buildApiUrl(API_ENDPOINTS.edicoes);
-
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: "Token " + token } : {}),
-  };
-}
 
 function mapEdition(item: Record<string, unknown>): Edition {
   return {
@@ -17,47 +10,56 @@ function mapEdition(item: Record<string, unknown>): Edition {
     number: Number(item.numeroTag ?? 0),
     title: String(item.titulo ?? ""),
     coverUrl: String(item.capaUrl ?? ""),
-    documentsCount: Number(item.documentsCount ?? 0),
+    documentsCount: Number((item._count as { revistas?: number } | undefined)?.revistas ?? 0),
   };
 }
 
 export async function fetchEditions(): Promise<Edition[]> {
   const response = await fetch(BASE_URL, {
-    headers: getAuthHeaders(),
+    headers: authHeaders(),
   });
 
-  if (!response.ok) {
-    throw new Error("Não foi possível carregar as edições.");
-  }
-
-  const data = await response.json();
+  const data = await readResponse<{ edicoes: Record<string, unknown>[] }>(response);
   const editions = (Array.isArray(data?.edicoes) ? data.edicoes : []) as Record<string, unknown>[];
   return editions.map(mapEdition);
 }
 
-export async function createEdition(data: { title: string; number: number; coverUrl: string }): Promise<void> {
+export interface EditionInput { title: string; number: number; cover: File | null }
+
+function editionForm(data: EditionInput): FormData {
+  const form = new FormData();
+  form.set("titulo", data.title);
+  form.set("numeroTag", String(data.number));
+  if (data.cover) form.set("capa", data.cover);
+  return form;
+}
+
+export async function createEdition(data: EditionInput): Promise<void> {
   const response = await fetch(BASE_URL, {
     method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify({
-      titulo: data.title,
-      numeroTag: String(data.number),
-      capaUrl: data.coverUrl,
-    }),
+    headers: authHeaders(false),
+    body: editionForm(data),
   });
 
-  if (!response.ok) {
-    throw new Error("Não foi possível criar a edição.");
-  }
+  await readResponse(response);
+}
+
+export async function fetchEdition(id: string): Promise<Edition> {
+  const response = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`);
+  const data = await readResponse<{ edicao: Record<string, unknown> }>(response);
+  return mapEdition(data.edicao);
+}
+
+export async function updateEdition(id: string, data: EditionInput): Promise<void> {
+  const response = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`, { method: "PUT", headers: authHeaders(false), body: editionForm(data) });
+  await readResponse(response);
 }
 
 export async function deleteEdition(id: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/${id}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
+    headers: authHeaders(),
   });
 
-  if (!response.ok) {
-    throw new Error("Não foi possível remover a edição.");
-  }
+  await readResponse(response);
 }

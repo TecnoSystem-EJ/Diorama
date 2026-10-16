@@ -17,7 +17,7 @@ export class AuthController{
         try{
             const usuario = await service.buscar(email);
 
-            if(!usuario) return res.status(400).json({mensagem: "Usuário ou senha incorretos."});
+            if(!usuario || usuario.deleted) return res.status(400).json({mensagem: "Usuário ou senha incorretos."});
 
             const senhaValida = await bcrypt.compare(senha, usuario.senhaHash);
 

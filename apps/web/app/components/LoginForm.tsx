@@ -33,6 +33,7 @@ export function LoginForm() {
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8">
 
       <LoginInput
+        aria-label="E-mail"
         type="email"
         placeholder="admin@diorama.com"
         autoComplete="email"
@@ -44,6 +45,7 @@ export function LoginForm() {
 
       <div className="relative">
         <LoginInput
+          aria-label="Senha"
           type={showPassword ? "text" : "password"}
           placeholder="••••••••"
           autoComplete="current-password"

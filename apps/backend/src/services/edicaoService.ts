@@ -4,12 +4,17 @@ import {db, Prisma} from "@diorama/db";
 export class EdicaoService {
 
     async listar() {
-        return await db.edicao.findMany();
+        return await db.edicao.findMany({
+            where: { deleted: false },
+            orderBy: { createdAt: "desc" },
+            include: { _count: { select: { revistas: { where: { deleted: false } } } } },
+        });
     }
 
     async buscar(id: string) {
         return await db.edicao.findUnique({
-            where: { id }
+            where: { id, deleted: false },
+            include: { revistas: { where: { deleted: false }, include: { autores: true } } },
         });
     }
 

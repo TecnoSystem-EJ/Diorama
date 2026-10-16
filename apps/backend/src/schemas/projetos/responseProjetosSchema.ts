@@ -1,5 +1,5 @@
 import * as z from "zod";
-import projetosSchema from "./projetosSchema";
+import projetosSchema from "./projetosSchema.js";
 
 export const visualizarBlogResponseSchema = z
   .object({

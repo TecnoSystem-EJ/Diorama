@@ -1,28 +1,32 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import type { EditionInput } from "../../../service/editionService";
+import type { Edition } from "../../../types/edition";
 
 interface NewEditionProps {
-  onSubmit: (data: { title: string; number: number; coverUrl: string }) => Promise<void>;
+  onSubmit: (data: EditionInput) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
+  initialEdition?: Edition;
 }
 
-export function NewEdition({ onSubmit, onCancel, isSubmitting = false }: NewEditionProps) {
-  const [title, setTitle] = useState("");
-  const [number, setNumber] = useState("");
-  const [coverUrl, setCoverUrl] = useState("");
+export function NewEdition({ onSubmit, onCancel, isSubmitting = false, initialEdition }: NewEditionProps) {
+  const [title, setTitle] = useState(initialEdition?.title ?? "");
+  const [number, setNumber] = useState(initialEdition ? String(initialEdition.number) : "");
+  const [cover, setCover] = useState<File | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    await onSubmit({ title, number: Number(number), coverUrl });
+    await onSubmit({ title, number: Number(number), cover });
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">TÍTULO</label>
+        <label htmlFor="edition-title" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">TÍTULO</label>
         <input
+          id="edition-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"
@@ -32,8 +36,9 @@ export function NewEdition({ onSubmit, onCancel, isSubmitting = false }: NewEdit
       </div>
 
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">NÚMERO DA EDIÇÃO</label>
+        <label htmlFor="edition-number" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">NÚMERO DA EDIÇÃO</label>
         <input
+          id="edition-number"
           type="number"
           min={1}
           value={number}
@@ -45,13 +50,14 @@ export function NewEdition({ onSubmit, onCancel, isSubmitting = false }: NewEdit
       </div>
 
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">URL DA CAPA</label>
+        <label htmlFor="edition-cover" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">IMAGEM DA CAPA{initialEdition ? " (OPCIONAL)" : ""}</label>
         <input
-          value={coverUrl}
-          onChange={(e) => setCoverUrl(e.target.value)}
+          id="edition-cover"
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          onChange={(e) => setCover(e.target.files?.[0] ?? null)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"
-          placeholder="https://..."
-          required
+          required={!initialEdition}
           disabled={isSubmitting}
         />
       </div>

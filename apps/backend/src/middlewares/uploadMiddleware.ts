@@ -10,7 +10,6 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log("criando pastas em static")
 const capaPath = path.resolve(__dirname, "../..", "static/capas");
 const revistaPath = path.resolve(__dirname, "../..", "static/pdfRevistas");
 const destaquePath = path.resolve(__dirname, "../..", "static/imagemDestaqueRevistas");
@@ -30,6 +29,7 @@ createFileDirs();
 
 
 const multerConf = {
+    limits: { fileSize: 20 * 1024 * 1024, files: 2, fields: 10 },
 
     storage: multer.diskStorage({
 
@@ -64,17 +64,17 @@ const multerConf = {
 
         if(file.fieldname === 'capa' || file.fieldname === 'imagemDestaque'){
 
-            if(!file.mimetype.startsWith("image/")){
+            if(!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.mimetype) || ![".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(path.extname(file.originalname).toLowerCase())){
 
-                return cb(new Error("O arquivo enviado no campo "+file.fieldname+" deve ser um arquivo de imagem."))
+                return cb(Object.assign(new Error("Envie uma imagem JPEG, PNG, WebP ou GIF."), { status: 400 }))
 
             }
 
         }else if(file.fieldname === "revistaPdf"){
 
-            if(file.mimetype != "application/pdf"){
+            if(file.mimetype != "application/pdf" || path.extname(file.originalname).toLowerCase() !== ".pdf"){
 
-                return cb(new Error("O arquivo enviado no campo 'revista' deve ser do tipo PDF."))
+                return cb(Object.assign(new Error("Envie um arquivo PDF."), { status: 400 }))
 
             }
 

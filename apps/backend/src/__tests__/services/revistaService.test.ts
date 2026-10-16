@@ -19,7 +19,7 @@ describe("RevistaService", () => {
 
       const result = await service.listar();
 
-      expect(mockedDb.revista.findMany).toHaveBeenCalledWith({ where: { deleted: false } });
+      expect(mockedDb.revista.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { deleted: false, edicao: { deleted: false } } }));
       expect(result).toEqual(revistas);
     });
   });
@@ -31,7 +31,7 @@ describe("RevistaService", () => {
 
       const result = await service.buscar("1");
 
-      expect(mockedDb.revista.findUnique).toHaveBeenCalledWith({ where: { id: "1" } });
+      expect(mockedDb.revista.findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "1", deleted: false, edicao: { deleted: false } } }));
       expect(result).toEqual(revista);
     });
 

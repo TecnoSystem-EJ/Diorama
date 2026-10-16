@@ -8,11 +8,11 @@ import pg from "pg";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+dotenv.config({ path: path.resolve(__dirname, "../../../apps/backend/.env") });
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-console.log(process.env.DATABASE_URL);
-
 const connectionString = process.env.DATABASE_URL;
+if (!connectionString) throw new Error("Defina DATABASE_URL para conectar ao PostgreSQL.");
 
 const pool = new pg.Pool({ connectionString });
 const adapter = new PrismaPg(pool);

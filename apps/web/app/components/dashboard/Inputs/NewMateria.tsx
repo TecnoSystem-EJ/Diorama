@@ -3,40 +3,37 @@
 import { useState, type FormEvent } from "react";
 import { RichTextEditor } from "../../ui/RichTextEditor";
 import { useEditions } from "../../../hooks/useEdicao";
+import type { MateriaInput } from "../../../service/materiaService";
 
 interface NewMateriaProps {
-  onSubmit: (data: {
-    editionId: string;
-    title: string;
-    author: string;
-    imageUrl: string;
-    content: string;
-  }) => Promise<void>;
+  onSubmit: (data: MateriaInput) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
 
 export function NewMateria({ onSubmit, onCancel, isSubmitting = false }: NewMateriaProps) {
-  const { editions, isLoading: editionsLoading } = useEditions();
+  const { editions, isLoading: editionsLoading, error: editionsError } = useEditions();
 
   const [editionId, setEditionId] = useState("");
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [image, setImage] = useState<File | null>(null);
+  const [pdf, setPdf] = useState<File | null>(null);
   const [content, setContent] = useState("");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    await onSubmit({ editionId, title, author, imageUrl, content });
+    await onSubmit({ editionId, title, author, image, pdf, content });
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">
+        <label htmlFor="materia-edition" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">
           VINCULAR À EDIÇÃO
         </label>
         <select
+          id="materia-edition"
           value={editionId}
           onChange={(e) => setEditionId(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm bg-white"
@@ -52,11 +49,13 @@ export function NewMateria({ onSubmit, onCancel, isSubmitting = false }: NewMate
             </option>
           ))}
         </select>
+        {editionsError && <p role="alert" className="text-sm text-red-600">{editionsError}</p>}
       </div>
 
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">TÍTULO</label>
+        <label htmlFor="materia-title" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">TÍTULO</label>
         <input
+          id="materia-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"
@@ -66,10 +65,11 @@ export function NewMateria({ onSubmit, onCancel, isSubmitting = false }: NewMate
       </div>
 
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">
+        <label htmlFor="materia-author" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">
           AUTOR (CRÉDITOS)
         </label>
         <input
+          id="materia-author"
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"
@@ -79,16 +79,23 @@ export function NewMateria({ onSubmit, onCancel, isSubmitting = false }: NewMate
       </div>
 
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">
-          URL DA IMAGEM DE CAPA
+        <label htmlFor="materia-image" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">
+          IMAGEM DE DESTAQUE
         </label>
         <input
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
+          id="materia-image"
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          onChange={(e) => setImage(e.target.files?.[0] ?? null)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"
-          placeholder="https://..."
+          required
           disabled={isSubmitting}
         />
+      </div>
+
+      <div>
+        <label htmlFor="materia-pdf" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">PDF DA MATÉRIA</label>
+        <input id="materia-pdf" type="file" accept="application/pdf" required disabled={isSubmitting} onChange={(e) => setPdf(e.target.files?.[0] ?? null)} />
       </div>
 
       <div>

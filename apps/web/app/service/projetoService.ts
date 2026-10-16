@@ -1,15 +1,9 @@
-import { API_ENDPOINTS, TOKEN_STORAGE_KEY, buildApiUrl } from "../config/api";
+import { authHeaders, readResponse } from "./http";
+import { API_ENDPOINTS, buildApiUrl } from "../config/api";
 import { Projeto } from "../types/projeto";
 
 const BASE_URL = buildApiUrl(API_ENDPOINTS.projetos);
 
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: "Token " + token } : {}),
-  };
-}
 
 function mapProjeto(item: Record<string, unknown>): Projeto {
   return {
@@ -20,10 +14,8 @@ function mapProjeto(item: Record<string, unknown>): Projeto {
 }
 
 export async function fetchProjetos(): Promise<Projeto[]> {
-  const response = await fetch(BASE_URL, { headers: getAuthHeaders() });
-  if (!response.ok) throw new Error("Não foi possível carregar os projetos.");
-
-  const data = await response.json();
+  const response = await fetch(BASE_URL, { headers: authHeaders() });
+  const data = await readResponse<Record<string, unknown>>(response);
   const projetos = (Array.isArray(data?.projetos) ? data.projetos : []) as Record<string, unknown>[];
   return projetos.map(mapProjeto);
 }
@@ -31,7 +23,7 @@ export async function fetchProjetos(): Promise<Projeto[]> {
 export async function createProjeto(data: { title: string; imageUrl: string; content: string }): Promise<void> {
   const response = await fetch(BASE_URL, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers: authHeaders(),
     body: JSON.stringify({
       titulo: data.title,
       imagemUrl: data.imageUrl,
@@ -39,13 +31,13 @@ export async function createProjeto(data: { title: string; imageUrl: string; con
     }),
   });
 
-  if (!response.ok) throw new Error("Não foi possível criar o projeto.");
+  await readResponse(response);
 }
 
 export async function deleteProjeto(id: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/${id}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
+    headers: authHeaders(),
   });
-  if (!response.ok) throw new Error("Não foi possível remover o projeto.");
+  await readResponse(response);
 }

@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { EdicaoService } from "../services/edicaoService.js";
 import { fileUtils } from "../utils/fileUtils.js";
 import { Prisma } from "@diorama/db";
+import { PUBLIC_API_URL } from "../config/enviroments.js";
 
 const service = new EdicaoService();
 // interface MagazineFiles {
@@ -58,7 +59,7 @@ export class EdicaoController {
 
         try {
             
-            const baseUrl = `${req.protocol}://${req.get('host')}/static`;
+            const baseUrl = `${PUBLIC_API_URL}/static`;
             const capaUrl = baseUrl + '/capas/' + capaFile?.filename;
 
             const dataEdicao = {
@@ -86,7 +87,7 @@ export class EdicaoController {
 
         
 
-        const baseUrl = `${req.protocol}://${req.get('host')}/static`;
+        const baseUrl = `${PUBLIC_API_URL}/static`;
 
         const dataEdicao:Prisma.EdicaoUpdateInput={};
 
@@ -100,9 +101,9 @@ export class EdicaoController {
             dataEdicao.numeroTag = req.body.numeroTag;
         }
 
-        if (req.body.file) {
+        if (req.file) {
 
-            const capaUrl = baseUrl + '/capas/' + req.body.file.filename;
+            const capaUrl = baseUrl + '/capas/' + req.file.filename;
             dataEdicao.capaUrl=capaUrl;
 
         }
@@ -113,7 +114,7 @@ export class EdicaoController {
             const edicao = await service.editar(id, dataEdicao);
             res.json({mensagem: "Edição editada com sucesso!", edicao: edicao})
         } catch (error) {
-            fileUtils.apagarArquivo(req.body.file.path);
+            fileUtils.apagarArquivo(req.file?.path);
             res.status(400).json({error: error});
             
         }

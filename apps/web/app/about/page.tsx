@@ -1,13 +1,16 @@
-"use client";
+import { publicApi } from "../../lib/publicApi";
+import { EditorialContent } from "../components/PublicPage";
 
-import React, { useState } from 'react';
+
+
 import Link from "next/link";
-import CC from '../imgs/CC.png';
-import Image from 'next/image';
+
+
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-const About = () => {
+const About = async () => {
+  const { textoCompletoHtml } = await publicApi<{ textoCompletoHtml: string }>("/sobre-nos");
   return (
     <div className="p-4">
         <main>
@@ -19,11 +22,11 @@ const About = () => {
                 <aside className="space-y-6 md:border-r md:border-black/20 md:pr-8">
                     <ul className="space-y-4 text-2xl uppercase text-justify">
                         <li><Link href="/about" className="hover:italic duration-500 transition-all">a diorama</Link></li>
-                        <li><Link href="about/equipe" className="hover:italic duration-500 transition-all">equipe</Link></li>
-                        <li><Link href="/sobre" className="hover:italic duration-500 transition-all">como colaborar</Link></li>
-                        <li><Link href="/contato" className="hover:italic duration-500 transition-all">onde encontrar</Link></li>
-                        <li><Link href="/contato" className="hover:italic duration-500 transition-all">contato</Link></li>
-                        <li><Link href="/contato" className="hover:italic duration-500 transition-all">apoie</Link></li>
+                        <li><Link href="/about/equipe" className="hover:italic duration-500 transition-all">equipe</Link></li>
+                        <li><Link href="/about/colaborar" className="hover:italic duration-500 transition-all">como colaborar</Link></li>
+                        <li><Link href="/about/ondeencontrar" className="hover:italic duration-500 transition-all">onde encontrar</Link></li>
+                        <li><Link href="/about/contato" className="hover:italic duration-500 transition-all">contato</Link></li>
+                        <li><Link href="/about/apoie" className="hover:italic duration-500 transition-all">apoie</Link></li>
                     </ul>
                 </aside>
 
@@ -34,17 +37,7 @@ const About = () => {
                 </h1>
                 <div className="w-24 h-[1px] bg-black my-4"></div>
                 
-                <div className="space-y-4 text-neutral-700 leading-relaxed font-sans text-lg">
-                    <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                    </p>
-                    <p>
-                    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
-                    <p>
-                    Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris.
-                    </p>
-                </div>
+                <EditorialContent html={textoCompletoHtml || "<p>A Diorama é uma plataforma editorial sobre cultura, natureza e novas formas de imaginar futuros.</p>"} />
                 </section>
             </section>
         </main>

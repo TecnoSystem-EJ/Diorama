@@ -1,5 +1,5 @@
 import * as z from "zod";
-import blogSchema from "./blogSchema";
+import blogSchema from "./blogSchema.js";
 
 const criarBlogSchema = z
   .object({

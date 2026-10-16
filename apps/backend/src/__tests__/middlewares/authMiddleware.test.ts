@@ -107,7 +107,7 @@ describe("authMiddleware", () => {
   });
 
   it("deve chamar next() e atribuir req.user quando o token for valido", () => {
-    const decoded = { id: "1", role: "ADMIN" };
+    const decoded = { id: 1, role: "ADMIN" };
     jwtMock.verify.mockReturnValue(decoded);
 
     const req = mockReq({ authorization: "Bearer token-valido" }) as any;

@@ -21,7 +21,7 @@ export function EditionRow({ edition, onRemove }: EditionRowProps) {
     <tr className="border-b border-neutral-200">
       <td className="py-4 pr-4 w-16">
         <div className="w-12 h-12 relative rounded overflow-hidden bg-neutral-100">
-          <Image src={edition.coverUrl} alt={`Capa da Edição ${edition.number}`} fill className="object-cover" />
+          <Image unoptimized src={edition.coverUrl} alt={`Capa da Edição ${edition.number}`} fill className="object-cover" />
         </div>
       </td>
       <td className="py-4 pr-4 text-sm font-medium whitespace-nowrap">

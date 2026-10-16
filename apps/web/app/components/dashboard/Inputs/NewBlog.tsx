@@ -21,8 +21,9 @@ export function NewBlog({ onSubmit, onCancel, isSubmitting = false }: NewBlogPro
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">TÍTULO</label>
+        <label htmlFor="blog-title" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">TÍTULO</label>
         <input
+          id="blog-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"

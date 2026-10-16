@@ -68,12 +68,14 @@ export class UsuarioService {
         })
     }
 
-    async editar(id:number, data:Prisma.UsuarioUpdateInput){
+    async editar(id:number, data:Prisma.UsuarioUpdateInput & { senha?: string }){
+        const { senha, ...update } = data;
+        if (senha) update.senhaHash = await bcrypt.hash(senha, 10);
         return await db.usuario.update({
             where:{
                 id:id
             },
-            data
+            data: update
         })
     }
 

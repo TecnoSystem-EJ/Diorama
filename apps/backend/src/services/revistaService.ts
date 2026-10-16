@@ -6,14 +6,18 @@ export class RevistaService {
     async listar() {
         return await db.revista.findMany({
             where:{
-                deleted:false
-            }
+                deleted:false,
+                edicao: { deleted: false },
+            },
+            include: { edicao: true, autores: true },
+            orderBy: { createdAt: "desc" },
         });
     }
 
     async buscar(id: string) {
         return await db.revista.findUnique({
-            where: { id:id}
+            where: { id, deleted: false, edicao: { deleted: false } },
+            include: { edicao: true, autores: true },
         });
     }
 
@@ -23,8 +27,13 @@ export class RevistaService {
         conteudo_html: string,
         imagemDestaque: string,
         pdfUrl: string,
+        autores?: string[],
     }){
-        return await db.revista.create({data})
+        const { autores, ...revista } = data;
+        return await db.revista.create({data: {
+            ...revista,
+            ...(autores?.length ? { autores: { create: autores.map(nome => ({ nome })) } } : {}),
+        }})
     }
 
     async desativarRegistro(id:string){

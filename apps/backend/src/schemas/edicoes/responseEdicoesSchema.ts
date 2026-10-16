@@ -1,5 +1,5 @@
 import * as z from "zod";
-import edicoesSchema from "./edicoesSchema";
+import edicoesSchema from "./edicoesSchema.js";
 
 export const visualizarBlogResponseSchema = z
   .object({

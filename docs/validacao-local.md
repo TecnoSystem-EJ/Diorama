@@ -1,7 +1,4 @@
 # Validação local — 16/10/2026
-
-A estrutura original do site foi restaurada após a orientação do usuário: home com fundo e movimento, cabeçalho em duas faixas, menu verde, rodapé, páginas institucionais com menu lateral e organização dos componentes do painel. As funcionalidades foram mantidas nesses componentes. O protótipo `docs/diorama_editorial.html` serve como referência funcional. Os fluxos editoriais foram exercitados com frontend, API e PostgreSQL reais. Esta validação não equivale à homologação em uma hospedagem externa.
-
 ## Verificações executadas
 
 | Verificação | Resultado |

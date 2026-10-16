@@ -295,6 +295,25 @@ describe("RevistaController", () => {
     });
   });
 
+  it("edita autoria e edição sem reenviar arquivos", async () => {
+    serviceInstance.editar.mockResolvedValue({ id: "1" });
+    const res = mockRes();
+    await controller.editar(mockReq({ autor: "Nova autora", edicaoId: "edicao-2" }, { id: "1" }, {}), res);
+    expect(serviceInstance.editar).toHaveBeenCalledWith("1", {
+      edicao: { connect: { id: "edicao-2" } },
+      autores: { deleteMany: {}, create: [{ nome: "Nova autora" }] },
+    });
+    expect(fileUtils.apagarArquivo).not.toHaveBeenCalled();
+  });
+
+  it("rejeita lista de autores inválida e remove somente novos uploads", async () => {
+    const res = mockRes();
+    await controller.editar(mockReq({ autores: "[123]" }, { id: "1" }, { revistaPdf: [{ path: "/tmp/new.pdf" }] }), res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(serviceInstance.editar).not.toHaveBeenCalled();
+    expect(fileUtils.apagarArquivo).toHaveBeenCalledWith("/tmp/new.pdf");
+  });
+
   describe("desativarRegistro", () => {
     it("deve retornar 400 se o id nao for fornecido", async () => {
       const req = mockReq({}, { id: "" });

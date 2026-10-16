@@ -1,0 +1,106 @@
+name: diorama-production
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-diorama}
+      POSTGRES_DB: ${POSTGRES_DB:-diorama}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ..
+      target: backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-diorama}:${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-diorama}
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET}
+      WEB_ORIGIN: ${SITE_URL:?Defina SITE_URL}
+      PUBLIC_API_URL: ${SITE_URL:?Defina SITE_URL}/api
+      UPLOAD_DIR: /data/uploads
+      BACKUP_DIR: /data/backups
+      ENABLE_BACKUP: ${ENABLE_BACKUP:-true}
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-0 2 * * *}
+      BACKUP_TIMEZONE: America/Sao_Paulo
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      NEWSLETTER_FROM: ${NEWSLETTER_FROM:-}
+      NEWSLETTER_PUBLIC_URL: ${SITE_URL:?Defina SITE_URL}
+    volumes:
+      - uploads:/data/uploads
+      - backups:/data/backups
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  migrate:
+    build:
+      context: ..
+      target: backend
+    profiles: ["tools"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-diorama}:${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-diorama}
+    command: ["pnpm", "--filter", "@diorama/db", "db:migrate"]
+
+  web:
+    build:
+      context: ..
+      target: web
+      args:
+        NEXT_PUBLIC_API_BASE_URL: /api
+        NEXT_PUBLIC_SITE_URL: ${SITE_URL:?Defina SITE_URL}
+        NEXT_PUBLIC_CONTACT_EMAIL: ${CONTACT_EMAIL:-}
+        NEXT_PUBLIC_INSTAGRAM_URL: ${INSTAGRAM_URL:-}
+        NEXT_PUBLIC_SPOTIFY_URL: ${SPOTIFY_URL:-}
+        NEXT_PUBLIC_ISSN: ${ISSN:-}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      API_INTERNAL_URL: http://backend:3001
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_HOST: ${SITE_HOST:?Defina SITE_HOST}
+      ACME_EMAIL: ${ACME_EMAIL:?Defina ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - certificates:/data
+      - proxy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  database:
+  uploads:
+  backups:
+  certificates:
+  proxy_config:

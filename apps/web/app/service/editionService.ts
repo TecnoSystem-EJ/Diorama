@@ -7,9 +7,10 @@ const BASE_URL = buildApiUrl(API_ENDPOINTS.edicoes);
 function mapEdition(item: Record<string, unknown>): Edition {
   return {
     id: String(item.id ?? ""),
-    number: Number(item.numeroTag ?? 0),
+    number: String(item.numeroTag ?? ""),
     title: String(item.titulo ?? ""),
     coverUrl: String(item.capaUrl ?? ""),
+    pdfUrl: typeof item.pdfUrl === "string" ? item.pdfUrl : null,
     documentsCount: Number((item._count as { revistas?: number } | undefined)?.revistas ?? 0),
   };
 }
@@ -24,13 +25,14 @@ export async function fetchEditions(): Promise<Edition[]> {
   return editions.map(mapEdition);
 }
 
-export interface EditionInput { title: string; number: number; cover: File | null }
+export interface EditionInput { title: string; number: string; cover: File | null; pdf: File | null }
 
 function editionForm(data: EditionInput): FormData {
   const form = new FormData();
   form.set("titulo", data.title);
   form.set("numeroTag", String(data.number));
   if (data.cover) form.set("capa", data.cover);
+  if (data.pdf) form.set("edicaoPdf", data.pdf);
   return form;
 }
 

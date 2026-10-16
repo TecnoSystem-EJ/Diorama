@@ -10,7 +10,7 @@ interface EditionRowProps {
 export function EditionRow({ edition, onRemove }: EditionRowProps) {
   function handleRemoveClick() {
     const confirmed = window.confirm(
-      `Remover a Edição ${String(edition.number).padStart(2, "0")} - "${edition.title}"?`
+      `Remover ${edition.number} - "${edition.title}"?`
     );
     if (confirmed) {
       onRemove(edition.id);
@@ -25,7 +25,7 @@ export function EditionRow({ edition, onRemove }: EditionRowProps) {
         </div>
       </td>
       <td className="py-4 pr-4 text-sm font-medium whitespace-nowrap">
-        Edição {String(edition.number).padStart(2, "0")}
+        {edition.number}
       </td>
       <td className="py-4 pr-4 font-serif text-lg">{edition.title}</td>
       <td className="py-4 pr-4 text-sm text-neutral-500 whitespace-nowrap">
@@ -34,11 +34,14 @@ export function EditionRow({ edition, onRemove }: EditionRowProps) {
       <td className="py-4 text-right whitespace-nowrap">
         <Link
           href={`/painel/edicoes/${edition.id}/editar`}
+          aria-label={`Editar ${edition.title}`}
           className="text-sm font-semibold tracking-wide text-blue-700 hover:underline mr-6"
         >
           EDITAR
         </Link>
         <button
+          type="button"
+          aria-label={`Remover ${edition.title}`}
           onClick={handleRemoveClick}
           className="text-sm font-semibold tracking-wide text-red-600 hover:underline"
         >

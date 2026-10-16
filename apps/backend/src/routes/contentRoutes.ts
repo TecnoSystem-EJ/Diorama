@@ -26,6 +26,10 @@ blogRoutes.post("/", ...requireAdmin, asyncHandler(async (req, res) => {
   const blog = await db.blog.create({ data: { ...data, dataPublicacao: new Date() } });
   res.status(201).json({ blog });
 }));
+blogRoutes.put("/:id", ...requireAdmin, asyncHandler(async (req, res) => {
+  const blog = await db.blog.update({ where: { id: req.params.id!, deleted: false }, data: contentSchema.parse(req.body) });
+  res.json({ blog });
+}));
 blogRoutes.delete("/:id", ...requireAdmin, asyncHandler(async (req, res) => {
   await db.blog.update({ where: { id: req.params.id!, deleted: false }, data: { deleted: true, deletedAt: new Date() } });
   res.json({ mensagem: "Ensaio removido." });
@@ -45,6 +49,10 @@ projetoRoutes.post("/", ...requireAdmin, asyncHandler(async (req, res) => {
   const projeto = await db.projeto.create({ data: projectSchema.parse(req.body) });
   res.status(201).json({ projeto });
 }));
+projetoRoutes.put("/:id", ...requireAdmin, asyncHandler(async (req, res) => {
+  const projeto = await db.projeto.update({ where: { id: req.params.id!, deleted: false }, data: projectSchema.parse(req.body) });
+  res.json({ projeto });
+}));
 projetoRoutes.delete("/:id", ...requireAdmin, asyncHandler(async (req, res) => {
   await db.projeto.update({ where: { id: req.params.id!, deleted: false }, data: { deleted: true, deletedAt: new Date() } });
   res.json({ mensagem: "Projeto removido." });
@@ -59,19 +67,4 @@ sobreRoutes.put("/", ...requireAdmin, asyncHandler(async (req, res) => {
   const { textoCompletoHtml } = z.object({ textoCompletoHtml: z.string().min(1).transform(cleanHtml) }).parse(req.body);
   const sobre = await db.sobreNos.upsert({ where: { id: 1 }, create: { id: 1, textoCompletoHtml }, update: { textoCompletoHtml } });
   res.json(sobre);
-}));
-
-export const subscriberRoutes: Router = Router();
-subscriberRoutes.post("/", asyncHandler(async (req, res) => {
-  const data = z.object({
-    email: z.email("Informe um e-mail válido.").trim().toLowerCase(),
-    nome: z.string().trim().max(120).optional(),
-  }).parse(req.body);
-  const nome = data.nome || data.email.split("@")[0]!;
-  await db.subscribers.upsert({
-    where: { email: data.email },
-    create: { email: data.email, nome },
-    update: { nome, status: "ATIVO", canceledAt: null },
-  });
-  res.status(201).json({ mensagem: "Inscrição recebida com sucesso!" });
 }));

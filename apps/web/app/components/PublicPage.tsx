@@ -5,7 +5,7 @@ import Footer from "./Footer";
 export function PublicPage({ title, children }: { title: string; children: ReactNode }) {
   return <div className="min-h-screen bg-[#F4F1EA]">
     <Header />
-    <main className="mx-auto max-w-6xl px-6 py-12 min-h-[65vh]">
+    <main id="conteudo" tabIndex={-1} className="mx-auto max-w-6xl px-6 py-12 min-h-[65vh]">
       <h1 className="font-serif text-4xl md:text-6xl mb-10">{title}</h1>
       {children}
     </main>

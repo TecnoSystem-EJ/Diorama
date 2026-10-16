@@ -4,9 +4,10 @@ import { Materia } from "../../../../types/materia";
 interface MateriaRowProps {
   materia: Materia;
   onRemove: (id: string) => void;
+  onEdit: (id: string) => void;
 }
 
-export function MateriaRow({ materia, onRemove }: MateriaRowProps) {
+export function MateriaRow({ materia, onRemove, onEdit }: MateriaRowProps) {
   function handleRemoveClick() {
     if (window.confirm(`Remover a matéria "${materia.title}"?`)) {
       onRemove(materia.id);
@@ -26,7 +27,9 @@ export function MateriaRow({ materia, onRemove }: MateriaRowProps) {
         <p className="text-sm text-neutral-500">{materia.author}</p>
       </td>
       <td className="py-4 text-right whitespace-nowrap">
+        <button type="button" onClick={() => onEdit(materia.id)} aria-label={`Editar ${materia.title}`} className="mr-5 text-sm font-semibold tracking-wide text-blue-700 hover:underline">EDITAR</button>
         <button
+          aria-label={`Remover ${materia.title}`}
           onClick={handleRemoveClick}
           className="text-sm font-semibold tracking-wide text-red-600 hover:underline"
         >

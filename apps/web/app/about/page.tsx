@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { publicApi } from "../../lib/publicApi";
 import { EditorialContent } from "../components/PublicPage";
 
@@ -47,3 +48,4 @@ const About = async () => {
 }
 
 export default About;
+export const metadata: Metadata = { title: "Sobre a Diorama", description: "Conheça a plataforma editorial Diorama e seu acervo.", alternates: { canonical: "/about" } };

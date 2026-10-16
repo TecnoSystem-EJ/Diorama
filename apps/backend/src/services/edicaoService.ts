@@ -21,7 +21,8 @@ export class EdicaoService {
     async cadastrar(data:{
         numeroTag: string,
         titulo: string,
-        capaUrl: string
+        capaUrl: string,
+        pdfUrl?: string,
     }){
         return await db.edicao.create({data})
     }
@@ -49,7 +50,7 @@ export class EdicaoService {
     async editar(id:string, data:Prisma.EdicaoUpdateInput){
         return await db.edicao.update({
             where:{
-                id:id
+                id:id, deleted: false
             },
             data
         })

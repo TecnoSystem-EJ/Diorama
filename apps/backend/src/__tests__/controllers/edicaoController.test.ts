@@ -242,6 +242,14 @@ describe("EdicaoController", () => {
     });
   });
 
+  it("salva o PDF próprio da edição e preserva capa omitida", async () => {
+    serviceInstance.editar.mockResolvedValue({ id: "1" });
+    const req = mockReq({}, { id: "1" });
+    req.files = { edicaoPdf: [{ filename: "completa.pdf", path: "/tmp/completa.pdf" }] };
+    await controller.editar(req, mockRes());
+    expect(serviceInstance.editar).toHaveBeenCalledWith("1", { pdfUrl: "http://localhost:3001/static/pdfEdicoes/completa.pdf" });
+  });
+
   describe("desativarRegistro", () => {
     it("deve retornar 400 se o id nao for fornecido", async () => {
       const req = mockReq({}, { id: "" });

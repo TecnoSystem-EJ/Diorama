@@ -3,20 +3,18 @@ import path from "node:path";
 import crypto from "crypto";
 import type { Request } from "express";
 import fs from 'fs';
+import { UPLOAD_DIR } from "../config/enviroments.js";
 
 
-import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const capaPath = path.resolve(__dirname, "../..", "static/capas");
-const revistaPath = path.resolve(__dirname, "../..", "static/pdfRevistas");
-const destaquePath = path.resolve(__dirname, "../..", "static/imagemDestaqueRevistas");
+const capaPath = path.resolve(UPLOAD_DIR, "capas");
+const revistaPath = path.resolve(UPLOAD_DIR, "pdfRevistas");
+const edicaoPdfPath = path.resolve(UPLOAD_DIR, "pdfEdicoes");
+const destaquePath = path.resolve(UPLOAD_DIR, "imagemDestaqueRevistas");
 
 
 const createFileDirs = ()=>{
-    const dirs=[capaPath, revistaPath, destaquePath];
+    const dirs=[capaPath, revistaPath, destaquePath, edicaoPdfPath];
 
     dirs.forEach(dir => {
         if(!fs.existsSync(dir)){
@@ -39,6 +37,8 @@ const multerConf = {
 
                 cb(null, capaPath);
 
+            }else if(file.fieldname === "edicaoPdf"){
+                cb(null, edicaoPdfPath);
             }else if(file.fieldname === "revistaPdf"){
 
                 cb(null, revistaPath);
@@ -70,7 +70,7 @@ const multerConf = {
 
             }
 
-        }else if(file.fieldname === "revistaPdf"){
+        }else if(file.fieldname === "revistaPdf" || file.fieldname === "edicaoPdf"){
 
             if(file.mimetype != "application/pdf" || path.extname(file.originalname).toLowerCase() !== ".pdf"){
 

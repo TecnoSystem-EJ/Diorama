@@ -1,15 +1,15 @@
 import "./config/enviroments.js";
 import cors from "cors";
 import express from "express";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { db } from "@diorama/db";
-import { WEB_ORIGIN } from "./config/enviroments.js";
+import { WEB_ORIGIN, UPLOAD_DIR } from "./config/enviroments.js";
 import revistaRoutes from "./routes/revistaRoutes.js";
 import edicaoRoutes from "./routes/edicaoRoutes.js";
 import usuarioRoutes from "./routes/usuarioRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import { blogRoutes, projetoRoutes, sobreRoutes, subscriberRoutes } from "./routes/contentRoutes.js";
+import { blogRoutes, projetoRoutes, sobreRoutes } from "./routes/contentRoutes.js";
+import { subscriberRoutes, newsletterRoutes } from "./routes/newsletterRoutes.js";
+import { searchRoutes } from "./routes/searchRoutes.js";
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 import { asyncHandler } from "./utils/asyncHandler.js";
 
@@ -17,7 +17,7 @@ export const app: express.Express = express();
 app.disable("x-powered-by");
 app.use(cors({ origin: WEB_ORIGIN.split(",").map(origin => origin.trim()) }));
 app.use(express.json({ limit: "2mb" }));
-app.use("/static", express.static(path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../static"), {
+app.use("/static", express.static(UPLOAD_DIR, {
   setHeaders(res) { res.setHeader("X-Content-Type-Options", "nosniff"); },
 }));
 app.get("/api/v1", (_req, res) => { res.json({ message: "API Diorama" }); });
@@ -33,5 +33,7 @@ app.use("/blogs", blogRoutes);
 app.use("/projetos", projetoRoutes);
 app.use("/sobre-nos", sobreRoutes);
 app.use("/subscribers", subscriberRoutes);
+app.use("/newsletter", newsletterRoutes);
+app.use("/busca", searchRoutes);
 app.use((_req, res) => { res.status(404).json({ mensagem: "Rota não encontrada." }); });
 app.use(errorMiddleware);

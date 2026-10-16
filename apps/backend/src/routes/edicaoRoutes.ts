@@ -9,8 +9,8 @@ const controller = new EdicaoController();
 
 edicaoRoutes.get("/", asyncHandler(controller.listar));
 edicaoRoutes.get("/:id", asyncHandler(controller.buscarPorId));
-edicaoRoutes.post("/", ...requireAdmin, uploadMiddleware.single("capa"), asyncHandler(controller.criar));
-edicaoRoutes.put("/:id", ...requireAdmin, uploadMiddleware.single("capa"), asyncHandler(controller.editar));
+edicaoRoutes.post("/", ...requireAdmin, uploadMiddleware.fields([{ name: "capa", maxCount: 1 }, { name: "edicaoPdf", maxCount: 1 }]), asyncHandler(controller.criar));
+edicaoRoutes.put("/:id", ...requireAdmin, uploadMiddleware.fields([{ name: "capa", maxCount: 1 }, { name: "edicaoPdf", maxCount: 1 }]), asyncHandler(controller.editar));
 edicaoRoutes.delete("/:id", ...requireAdmin, asyncHandler(controller.desativarRegistro));
 
 export default edicaoRoutes;

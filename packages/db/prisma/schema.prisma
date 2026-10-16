@@ -17,6 +17,7 @@ model Edicao {
   titulo    String    @db.Text
   numeroTag String    @unique @map("numero_tag") @db.Text
   capaUrl   String    @map("capa_url") @db.Text
+  pdfUrl    String?   @map("pdf_url") @db.Text
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deleted   Boolean   @default(false)
@@ -94,6 +95,7 @@ model Subscribers {
   status       SubscriptionStatus @default(ATIVO)
   subscribedAt DateTime           @default(now()) @map("subscribed_at")
   canceledAt   DateTime?          @map("canceled_at")
+  entregas     NewsletterEntrega[]
 
   @@map("subscribers")
 }
@@ -123,4 +125,50 @@ model SobreNos {
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   @@map("sobre_nos")
+}
+
+
+enum NewsletterCampaignStatus {
+  RASCUNHO
+  ENVIANDO
+  CONCLUIDA
+  PARCIAL
+}
+
+enum NewsletterDeliveryStatus {
+  PENDENTE
+  ENVIANDO
+  ENVIADA
+  FALHOU
+  INCERTA
+  CANCELADA
+}
+
+model NewsletterCampanha {
+  id             String                   @id @default(uuid())
+  assunto        String                   @db.Text
+  conteudoHtml   String                   @map("conteudo_html") @db.Text
+  status         NewsletterCampaignStatus @default(RASCUNHO)
+  publicoFixadoEm DateTime?                @map("publico_fixado_em")
+  createdAt      DateTime                  @default(now()) @map("created_at")
+  updatedAt      DateTime                  @updatedAt @map("updated_at")
+  entregas       NewsletterEntrega[]
+
+  @@map("newsletter_campanhas")
+}
+
+model NewsletterEntrega {
+  id           String                   @id @default(uuid())
+  campanhaId   String                   @map("campanha_id")
+  subscriberId Int                      @map("subscriber_id")
+  status       NewsletterDeliveryStatus @default(PENDENTE)
+  tentativas   Int                      @default(0)
+  enviadoEm    DateTime?                 @map("enviado_em")
+  updatedAt    DateTime                  @updatedAt @map("updated_at")
+  campanha     NewsletterCampanha        @relation(fields: [campanhaId], references: [id])
+  subscriber   Subscribers               @relation(fields: [subscriberId], references: [id])
+
+  @@unique([campanhaId, subscriberId])
+  @@index([campanhaId, status])
+  @@map("newsletter_entregas")
 }

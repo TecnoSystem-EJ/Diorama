@@ -60,7 +60,12 @@ export const db = {
     update: jest.fn(),
     delete: jest.fn(),
   },
+  $transaction: jest.fn(),
+  newsletterCampanha: { findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
+  newsletterEntrega: { findMany: jest.fn(), count: jest.fn(), createMany: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
   subscribers: {
+    upsert: jest.fn(),
+    updateMany: jest.fn(),
     findMany: jest.fn(),
     findUnique: jest.fn(),
     create: jest.fn(),

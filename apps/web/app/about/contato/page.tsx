@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import React from 'react'
+import { site } from '../../../lib/site'
 import Link from "next/link";
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
@@ -24,13 +26,10 @@ const page = () => {
 
                 {/* texto principal */}
                 <section className="md:col-span-2 space-y-6">
-                <h2 className='font-bold uppercase mb-8 text-4xl'>como colaborar</h2>
+                <h2 className='font-bold uppercase mb-8 text-4xl'>contato</h2>
 
                 <div>
-                  <p className="text-neutral-700 leading-relaxed text-lg text-justify">A DIORAMA é uma revista que se propõe a inventar uma outra forma de escrita e de leitura, densa e engajada, mas não acadêmica e acessível a um público amplo.
-                    Publicamos ensaios visuais (desenhos, fotografias, ilustrações, etc) e textos entre 3 e 4 mil palavras e estamos abertos a propostas. Antes de submeter um ensaio, sugerimos um passeio pelas edições já publicadas.
-                    Se tivermos interesse em publicar seu ensaio, responderemos em até 60 dias.
-                  </p>
+                  {site.email ? <a className="text-neutral-700 text-lg underline" href={`mailto:${site.email}`}>{site.email}</a> : <p className="text-neutral-700 leading-relaxed text-lg">O contato editorial será divulgado após a definição dos canais oficiais.</p>}
                 </div>
                 </section>
             </section>
@@ -41,3 +40,4 @@ const page = () => {
 }
 
 export default page
+export const metadata: Metadata = { title: "Contato", description: "Canais de contato e novidades da Diorama.", alternates: { canonical: "/about/contato" } };

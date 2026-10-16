@@ -18,7 +18,8 @@ export function EditionList({ refreshSignal = 0 }: EditionListProps) {
   if (editions.length === 0) return <p className="text-sm text-neutral-500">Nenhuma edição publicada ainda.</p>;
 
   return (
-    <table className="w-full border-collapse">
+    <div role="region" aria-label="Lista de edições" tabIndex={0} className="relative overflow-x-auto focus-visible:outline-2 focus-visible:outline-black">
+    <table className="min-w-[720px] w-full border-collapse">
       <thead>
         <tr className="border-b border-neutral-300">
           <th scope="col" className="pb-3 text-left"><span className="sr-only">Capa</span></th>
@@ -34,5 +35,6 @@ export function EditionList({ refreshSignal = 0 }: EditionListProps) {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

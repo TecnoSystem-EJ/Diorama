@@ -13,6 +13,10 @@ export function EdicaoSection() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [refreshSignal, setRefreshSignal] = useState(0);
 
+  function close() {
+    if (!isSubmitting) setIsModalOpen(false);
+  }
+
   async function handleCreate(data: EditionInput) {
     setIsSubmitting(true);
     setCreateError(null);
@@ -30,12 +34,12 @@ export function EdicaoSection() {
 
   return (
     <section>
-      <SectionHeader title="Edições Publicadas" buttonLabel="+ NOVA EDIÇÃO" onButtonClick={() => setIsModalOpen(true)} />
+      <SectionHeader title="Edições Publicadas" buttonLabel="+ NOVA EDIÇÃO" onButtonClick={() => { setCreateError(null); setIsModalOpen(true); }} />
       <EditionList refreshSignal={refreshSignal} />
 
-      <CreateModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Edição" size="large">
-        {createError && <p className="mb-4 text-sm text-red-600">{createError}</p>}
-        <NewEdition onSubmit={handleCreate} onCancel={() => setIsModalOpen(false)} isSubmitting={isSubmitting} />
+      <CreateModal isOpen={isModalOpen} onClose={close} title="Nova Edição" size="large">
+        {createError && <p role="alert" className="mb-4 text-sm text-red-600">{createError}</p>}
+        <NewEdition onSubmit={handleCreate} onCancel={close} isSubmitting={isSubmitting} />
       </CreateModal>
     </section>
   );

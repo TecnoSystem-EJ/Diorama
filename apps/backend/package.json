@@ -11,7 +11,9 @@
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "build": "tsc --noEmit",
     "check-types": "tsc --noEmit",
-    "admin:create": "tsx src/scripts/createAdmin.ts"
+    "admin:create": "tsx src/scripts/createAdmin.ts",
+    "backup": "tsx src/scripts/backup.ts",
+    "backup:verify": "tsx src/scripts/verifyBackup.ts"
   },
   "dependencies": {
     "@diorama/db": "workspace:^",
@@ -23,6 +25,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
     "node-cron": "^4.5.0",
+    "nodemailer": "^7.0.10",
     "sanitize-html": "^2.18.1",
     "tsx": "^4.22.4",
     "zod": "^4.4.3"
@@ -34,6 +37,7 @@
     "@types/express": "4.17.23",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^7.0.3",
     "@types/sanitize-html": "^2.16.2",
     "@types/supertest": "^7.2.1",
     "jest": "^30.4.2",

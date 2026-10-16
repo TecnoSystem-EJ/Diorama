@@ -55,7 +55,7 @@ export function SobreSection() {
       <SectionHeader title='Editar Página "Sobre Nós"' />
       {isLoading && <p>Carregando conteúdo...</p>}
 
-      <div className="mt-8 max-w-4xl border border-[#d9d4ca] bg-[#f5f2eb] px-8 py-8">
+      <div className="mt-8 max-w-4xl border border-[#d9d4ca] bg-[#f5f2eb] p-4 sm:p-8">
         <div className="mb-3">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#111]">
             Editor avançado (adicione textos, imagens, negritos)
@@ -65,9 +65,11 @@ export function SobreSection() {
         <RichTextEditor
           value={content}
           onChange={setContent}
+          disabled={isSaving || isLoading}
+          label="Conteúdo da página Sobre Nós"
         />
 
-        {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
+        {saveError && <p role="alert" className="mt-4 text-sm text-red-600">{saveError}</p>}
         {saved && <p role="status" className="mt-4 text-sm text-green-700">Alterações salvas.</p>}
 
         <div className="mt-6">

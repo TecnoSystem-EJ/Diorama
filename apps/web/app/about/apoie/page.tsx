@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from 'react'
 import Link from "next/link";
 import Header from '../../components/Header'
@@ -44,3 +45,4 @@ Ao longo dos últimos anos, a DIORAMA tem recorrido a editais (cada vez mais esc
 }
 
 export default page
+export const metadata: Metadata = { title: "Apoie a Diorama", description: "Acompanhe e compartilhe o trabalho editorial da Diorama.", alternates: { canonical: "/about/apoie" } };

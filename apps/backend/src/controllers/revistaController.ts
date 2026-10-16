@@ -7,6 +7,21 @@ import { cleanHtml } from "../utils/cleanHtml.js";
 
 const service = new RevistaService();
 
+function parseAutores(body: Record<string, unknown>): string[] | undefined {
+    if (body.autores !== undefined) {
+        const input = typeof body.autores === "string" ? JSON.parse(body.autores) : body.autores;
+        if (!Array.isArray(input) || input.length > 30 || input.some(nome => typeof nome !== "string" || !nome.trim() || nome.length > 200)) {
+            throw new Error("Informe uma lista válida de autores.");
+        }
+        return [...new Set(input.map(nome => (nome as string).trim()))];
+    }
+    if (body.autor !== undefined) {
+        if (typeof body.autor !== "string" || body.autor.length > 200) throw new Error("Informe uma autoria válida.");
+        return body.autor.trim() ? [body.autor.trim()] : [];
+    }
+    return undefined;
+}
+
 interface ArquivosRevista {
   imagemDestaque?: Express.Multer.File[];
   revistaPdf?: Express.Multer.File[];
@@ -78,13 +93,14 @@ export class RevistaController {
             const imagemDestaqueUrl = baseUrl + '/imagemDestaqueRevistas/' + imagemDestaque?.filename;
             const revistaPdfUrl = baseUrl + '/pdfRevistas/' + revistaPdf?.filename;
 
+            const autores = parseAutores(req.body);
             const dataRevista = {
                 edicaoId: edicaoId,
                 titulo: titulo,
                 conteudo_html: cleanHtml(conteudo_html),
                 imagemDestaque: imagemDestaqueUrl,
                 pdfUrl: revistaPdfUrl,
-                ...(typeof req.body.autor === "string" && req.body.autor.trim() ? { autores: [req.body.autor.trim()] } : {}),
+                ...(autores !== undefined ? { autores } : {}),
             }
 
             const revista = await service.cadastrar(dataRevista)
@@ -138,7 +154,20 @@ export class RevistaController {
 
         }
 
-        if(!dataRevista.pdfUrl && !dataRevista.imagemDestaque && !dataRevista.conteudo_html && !dataRevista.titulo) return res.status(400).json({mensagem: "Nenhum dado foi fornecido para alteração do regsitro."})
+        try {
+            if (req.body.edicaoId !== undefined) {
+                if (typeof req.body.edicaoId !== "string" || !req.body.edicaoId.trim()) throw new Error("Informe uma edição válida.");
+                dataRevista.edicao = { connect: { id: req.body.edicaoId } };
+            }
+            const autores = parseAutores(req.body);
+            if (autores !== undefined) dataRevista.autores = { deleteMany: {}, create: autores.map(nome => ({ nome })) };
+        } catch {
+            fileUtils.apagarArquivo(files.revistaPdf?.[0]?.path);
+            fileUtils.apagarArquivo(files.imagemDestaque?.[0]?.path);
+            return res.status(400).json({ mensagem: "Informe edição e autoria válidas." });
+        }
+
+        if(!dataRevista.pdfUrl && !dataRevista.imagemDestaque && !dataRevista.conteudo_html && !dataRevista.titulo && !dataRevista.edicao && !dataRevista.autores) return res.status(400).json({mensagem: "Nenhum dado foi fornecido para alteração do regsitro."})
 
         try{
             const revista = await service.editar(id, dataRevista);

@@ -6,17 +6,25 @@ import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { TextStyleKit } from "@tiptap/extension-text-style";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { VideoEmbed, videoEmbedUrl } from "./VideoEmbed";
 
 interface RichTextEditorProps {
   value: string;
   onChange: (html: string) => void;
+  id?: string;
+  disabled?: boolean;
+  label?: string;
 }
 
 export function RichTextEditor({
   value,
   onChange,
+  id,
+  disabled = false,
+  label = "Conteúdo",
 }: RichTextEditorProps) {
+  const [error, setError] = useState<string | null>(null);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -34,6 +42,7 @@ export function RichTextEditor({
         inline: false,
         allowBase64: false,
       }),
+      VideoEmbed,
     ],
     content: value,
 
@@ -42,7 +51,11 @@ export function RichTextEditor({
     },
 
     immediatelyRender: false,
+    editable: !disabled,
+    editorProps: { attributes: { ...(id ? { id } : {}), role: "textbox", "aria-label": label, "aria-multiline": "true", class: "min-h-50 outline-none focus-visible:ring-2 focus-visible:ring-black" } },
   });
+
+  useEffect(() => { editor?.setEditable(!disabled, false); }, [editor, disabled]);
 
   useEffect(() => {
     if (editor && editor.getHTML() !== value) editor.commands.setContent(value, { emitUpdate: false });
@@ -66,6 +79,9 @@ export function RichTextEditor({
       return;
     }
 
+    if (!webUrl(url)) { setError("Informe um link válido com http:// ou https://."); return; }
+    setError(null);
+
     editor
       .chain()
       .focus()
@@ -81,6 +97,8 @@ export function RichTextEditor({
     if (!url) {
       return;
     }
+    if (!webUrl(url)) { setError("Informe uma URL de imagem com http:// ou https://."); return; }
+    setError(null);
 
     editor
       .chain()
@@ -89,30 +107,28 @@ export function RichTextEditor({
       .run();
   };
 
-  // Inserir link de vídeo
   const addVideo = () => {
-    const url = window.prompt("Digite a URL do vídeo para inserir como link:");
+    const url = window.prompt("Digite a URL de um vídeo do YouTube ou Vimeo:");
 
     if (!url) {
       return;
     }
 
-    editor
-      .chain()
-      .focus()
-      .insertContent(
-        `<p><a href="${url}" target="_blank">${url}</a></p>`
-      )
-      .run();
+    const src = videoEmbedUrl(url);
+    if (!src) { setError("Use um link de vídeo válido do YouTube ou Vimeo."); return; }
+    setError(null);
+    editor.chain().focus().insertContent({ type: "videoEmbed", attrs: { src } }).run();
   };
 
   return (
-    <div className="w-full border border-neutral-300 bg-white">
+    <fieldset disabled={disabled} className="min-w-0 w-full border border-neutral-300 bg-white">
+      <legend className="sr-only">{label}</legend>
       {/* TOOLBAR */}
-      <div className="flex items-center gap-1 border-b border-neutral-300 px-2 py-1.5">
+      <div role="group" aria-label="Formatação do conteúdo" className="flex flex-wrap items-center gap-1 border-b border-neutral-300 px-2 py-1.5">
         
         {/* Estilo */}
         <select
+          aria-label="Estilo de parágrafo"
           className="h-8 min-w-22.5 border-none bg-transparent px-2 text-sm outline-none"
           defaultValue="normal"
           onChange={(e) => {
@@ -250,7 +266,7 @@ export function RichTextEditor({
         {/* Vídeo */}
         <ToolbarButton
           onClick={addVideo}
-          title="Inserir link de vídeo"
+          title="Inserir vídeo"
         >
           ▣
         </ToolbarButton>
@@ -270,6 +286,7 @@ export function RichTextEditor({
           Tₓ
         </ToolbarButton>
       </div>
+      {error && <p role="alert" className="px-4 pt-3 text-sm text-red-700">{error}</p>}
 
       {/* EDITOR */}
       <EditorContent
@@ -284,7 +301,7 @@ export function RichTextEditor({
           focus-within:outline-none
         "
       />
-    </div>
+    </fieldset>
   );
 }
 
@@ -308,6 +325,7 @@ function ToolbarButton({
       type="button"
       title={title}
       aria-label={title}
+      aria-pressed={active}
       onClick={onClick}
       onMouseDown={(e) => {
         e.preventDefault();
@@ -332,6 +350,11 @@ function ToolbarButton({
       {children}
     </button>
   );
+}
+
+function webUrl(value: string): boolean {
+  try { return ["http:", "https:"].includes(new URL(value).protocol); }
+  catch { return false; }
 }
 
 function ToolbarDivider() {

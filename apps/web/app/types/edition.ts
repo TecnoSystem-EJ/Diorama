@@ -1,7 +1,8 @@
 export interface Edition {
   id: string;
-  number: number; 
+  number: string;
   title: string; 
   coverUrl: string;
+  pdfUrl: string | null;
   documentsCount: number;
 }

@@ -3,6 +3,9 @@
 import Image from 'next/image';
 import CC from '../imgs/CC.png';
 import React, { useState } from 'react';
+import { buildApiUrl } from '../config/api';
+import { readResponse } from '../service/http';
+import { site } from '../../lib/site';
 
 
 export default function Footer() {
@@ -16,32 +19,21 @@ export default function Footer() {
     setFeedback(null);
 
     try {
-      const response = await fetch("https://api.web3forms.com/submit", {
+      const response = await fetch(buildApiUrl("/subscribers"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
 
-        body: JSON.stringify({
-
-        //   apikey: "CHAVE_AQUI", // colar chave aqui
-          subject: "Nova assinatura de Newsletter - Diorama",
-          email: email,
-          message: `Um novo usuário se inscreveu na newsletter com o e-mail: ${email}`,
-        }),
+        body: JSON.stringify({ email }),
       });
 
-      const result = await response.json();
-      if (result.success) {
-        setFeedback({ success: true, message: 'Inscrição realizada com sucesso!' });
-        setEmail('');
-      } else {
-        setFeedback({ success: false, message: 'Erro ao enviar. Tente novamente.' });
-      }
+      const result = await readResponse<{ mensagem: string }>(response);
+      setFeedback({ success: true, message: result.mensagem });
+      setEmail('');
     } catch (error) {
-      console.error(error);
-      setFeedback({ success: false, message: 'Erro de conexão. Tente novamente.' });
+      setFeedback({ success: false, message: error instanceof Error ? error.message : 'Erro de conexão. Tente novamente.' });
     } finally {
       setLoading(false);
     }
@@ -52,8 +44,8 @@ export default function Footer() {
         {/* rodapé */}
         <div className='flex justify-between border-b border-black mb-4 p-10'>
           <div className=''>
-            <p className='uppercase font-bold'>diorama.org</p>
-            <p className='uppercase font-light'>issn 0000-0000</p>
+            <p className='uppercase font-bold'>{site.isConfigured ? new URL(site.url).hostname : 'Diorama'}</p>
+            {site.issn && <p className='uppercase font-light'>ISSN {site.issn}</p>}
             <Image 
                 src={CC} 
                 alt="CC" 
@@ -62,12 +54,12 @@ export default function Footer() {
             />
         </div>
         <div className="flex gap-4 text-black">
-            <button className=" text-3xl hover:opacity-50 transition-opacity duration-300 cursor-pointer">
+            {site.instagram && <a href={site.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className=" text-3xl hover:opacity-50 transition-opacity duration-300 cursor-pointer">
               <i className="bi bi-instagram"></i>
-            </button>
-            <button className=" text-3xl hover:opacity-50 transition-opacity duration-300 cursor-pointer">
+            </a>}
+            {site.spotify && <a href={site.spotify} target="_blank" rel="noopener noreferrer" aria-label="Spotify" className=" text-3xl hover:opacity-50 transition-opacity duration-300 cursor-pointer">
               <i className="bi bi-spotify"></i>
-            </button>
+            </a>}
         </div>   
         </div>      
 
@@ -85,7 +77,11 @@ export default function Footer() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row gap-3">
               <input 
-                type="email" 
+                type="email"
+                aria-label="Seu email"
+                autoComplete="email"
+                maxLength={254}
+                disabled={loading}
                 name="email"
                 required
                 placeholder="Seu melhor e-mail..."
@@ -102,7 +98,7 @@ export default function Footer() {
               </button>
             </div>
             {feedback && (
-              <p className={`text-xs font-mono ${feedback.success ? 'text-green-700' : 'text-red-600'}`}>
+              <p role={feedback.success ? 'status' : 'alert'} className={`text-xs font-mono ${feedback.success ? 'text-green-700' : 'text-red-600'}`}>
                 {feedback.message}
               </p>
             )}

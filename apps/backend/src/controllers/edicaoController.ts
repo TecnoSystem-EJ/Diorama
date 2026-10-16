@@ -11,21 +11,21 @@ const service = new EdicaoService();
 
 export class EdicaoController {
     async listar(req: Request, res: Response) {
-    
+
         const edicoes = await service.listar();
 
         return res.json({quantidade: edicoes.length, edicoes:edicoes});
 
     }
-    
+
     async buscarPorId(req: Request, res: Response) {
 
         const {id} = req.params;
 
-        
+
         if(!id) return res.status(400).json({mensagem: "O id não foi fornecido."});
 
-        
+
 
         const edicao = await service.buscar(id);
 
@@ -39,12 +39,15 @@ export class EdicaoController {
     async criar(req: Request, res: Response) {
 
         const { titulo, numeroTag } = req.body;
-        const capaFile = req.file               
+        const files = (req.files ?? {}) as { capa?: Express.Multer.File[]; edicaoPdf?: Express.Multer.File[] };
+        const capaFile = files.capa?.[0] ?? req.file;
+        const pdfFile = files.edicaoPdf?.[0];
 
 
 
 
         if (!capaFile) {
+            fileUtils.apagarArquivo(pdfFile?.path);
             res.status(400).json({ message: "É necessário enviar a imagem de capa." });
             return;
         }
@@ -52,20 +55,22 @@ export class EdicaoController {
         if (!titulo || !numeroTag) {
 
             fileUtils.apagarArquivo(capaFile?.path);
+            fileUtils.apagarArquivo(pdfFile?.path);
 
             res.status(400).json({ message: "Parâmetros insuficientes." });
             return;
         }
 
         try {
-            
+
             const baseUrl = `${PUBLIC_API_URL}/static`;
             const capaUrl = baseUrl + '/capas/' + capaFile?.filename;
 
             const dataEdicao = {
                 numeroTag: numeroTag,
                 titulo: titulo,
-                capaUrl: capaUrl
+                capaUrl: capaUrl,
+                ...(pdfFile ? { pdfUrl: `${baseUrl}/pdfEdicoes/${pdfFile.filename}` } : {}),
             }
 
             const edicao = await service.cadastrar(dataEdicao)
@@ -74,10 +79,11 @@ export class EdicaoController {
 
         } catch (error) {
             fileUtils.apagarArquivo(capaFile?.path);
+            fileUtils.apagarArquivo(pdfFile?.path);
             res.status(400).json({error: error})
-            
+
         }
-    
+
     }
 
     async editar(req:Request, res:Response){
@@ -85,11 +91,14 @@ export class EdicaoController {
         const {id} = req.params;
 
 
-        
+
 
         const baseUrl = `${PUBLIC_API_URL}/static`;
 
         const dataEdicao:Prisma.EdicaoUpdateInput={};
+        const files = (req.files ?? {}) as { capa?: Express.Multer.File[]; edicaoPdf?: Express.Multer.File[] };
+        const capaFile = files.capa?.[0] ?? req.file;
+        const pdfFile = files.edicaoPdf?.[0];
 
         if(!id) return res.status(400).json({mensagem: "O id não foi fornecido."});
 
@@ -101,25 +110,28 @@ export class EdicaoController {
             dataEdicao.numeroTag = req.body.numeroTag;
         }
 
-        if (req.file) {
+        if (capaFile) {
 
-            const capaUrl = baseUrl + '/capas/' + req.file.filename;
+            const capaUrl = baseUrl + '/capas/' + capaFile.filename;
             dataEdicao.capaUrl=capaUrl;
 
         }
 
-        if(!dataEdicao.titulo && !dataEdicao.capaUrl && !dataEdicao.numeroTag) return res.status(400).json({mensagem: "Nenhum dado foi fornecido para alteração do regsitro."})
+        if (pdfFile) dataEdicao.pdfUrl = `${baseUrl}/pdfEdicoes/${pdfFile.filename}`;
+
+        if(!dataEdicao.titulo && !dataEdicao.capaUrl && !dataEdicao.numeroTag && !dataEdicao.pdfUrl) return res.status(400).json({mensagem: "Nenhum dado foi fornecido para alteração do regsitro."})
 
         try{
             const edicao = await service.editar(id, dataEdicao);
             res.json({mensagem: "Edição editada com sucesso!", edicao: edicao})
         } catch (error) {
-            fileUtils.apagarArquivo(req.file?.path);
+            fileUtils.apagarArquivo(capaFile?.path);
+            fileUtils.apagarArquivo(pdfFile?.path);
             res.status(400).json({error: error});
-            
+
         }
 
-        
+
     }
 
     async desativarRegistro(req:Request, res:Response) {
@@ -132,7 +144,7 @@ export class EdicaoController {
             res.json({mensagem: "Registro desativado com sucesso!"});
         }catch (error) {
             res.status(400).json({error: error});
-            
+
         }
     }
 }

@@ -10,6 +10,7 @@ describe("RevistaService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new RevistaService();
+    mockedDb.edicao.findUnique.mockResolvedValue({ id: "ed-1" } as any);
   });
 
   describe("listar", () => {
@@ -81,6 +82,18 @@ describe("RevistaService", () => {
     });
   });
 
+  it("rejeita cadastro em edição desativada", async () => {
+    mockedDb.edicao.findUnique.mockResolvedValue(null);
+    await expect(service.cadastrar({ edicaoId: "deleted", titulo: "Matéria", conteudo_html: "<p>Texto</p>", imagemDestaque: "http://localhost/image.png", pdfUrl: "http://localhost/file.pdf" })).rejects.toThrow("Selecione uma edição ativa.");
+    expect(mockedDb.revista.create).not.toHaveBeenCalled();
+  });
+
+  it("rejeita transferência para edição desativada", async () => {
+    mockedDb.edicao.findUnique.mockResolvedValue(null);
+    await expect(service.editar("1", { edicao: { connect: { id: "deleted" } } })).rejects.toThrow("Selecione uma edição ativa.");
+    expect(mockedDb.revista.update).not.toHaveBeenCalled();
+  });
+
   describe("deletar", () => {
     it("deve chamar db.revista.delete com o id fornecido", async () => {
       mockedDb.revista.delete.mockResolvedValue({ id: "1" } as any);
@@ -99,7 +112,7 @@ describe("RevistaService", () => {
 
       const result = await service.editar("1", data);
 
-      expect(mockedDb.revista.update).toHaveBeenCalledWith({ where: { id: "1" }, data });
+      expect(mockedDb.revista.update).toHaveBeenCalledWith({ where: { id: "1", deleted: false }, data });
       expect(result).toEqual(revistaEditada);
     });
   });

@@ -10,6 +10,8 @@ export default defineConfig({
     viewport: { width: 1440, height: 1000 },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    actionTimeout: 20_000,
+    navigationTimeout: 30_000,
     ...(process.env.E2E_BROWSER_WS_URL ? { connectOptions: { wsEndpoint: process.env.E2E_BROWSER_WS_URL } } : {}),
   },
 });

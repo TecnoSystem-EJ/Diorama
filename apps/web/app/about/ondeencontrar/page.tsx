@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from 'react'
 import Link from "next/link";
 import Header from '../../components/Header'
@@ -60,3 +61,4 @@ const page = () => {
 }
 
 export default page
+export const metadata: Metadata = { title: "Onde encontrar", description: "Acesse as edições digitais e os PDFs das matérias da Diorama.", alternates: { canonical: "/about/ondeencontrar" } };

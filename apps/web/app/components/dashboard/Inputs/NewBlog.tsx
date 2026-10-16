@@ -2,16 +2,18 @@
 
 import { useState, type FormEvent } from "react";
 import { RichTextEditor } from "../../ui/RichTextEditor";
+import type { Blog } from "../../../types/blog";
 
 interface NewBlogProps {
   onSubmit: (data: { title: string; content: string }) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
+  initialBlog?: Blog;
 }
 
-export function NewBlog({ onSubmit, onCancel, isSubmitting = false }: NewBlogProps) {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+export function NewBlog({ onSubmit, onCancel, isSubmitting = false, initialBlog }: NewBlogProps) {
+  const [title, setTitle] = useState(initialBlog?.title ?? "");
+  const [content, setContent] = useState(initialBlog?.content ?? "");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -33,8 +35,8 @@ export function NewBlog({ onSubmit, onCancel, isSubmitting = false }: NewBlogPro
       </div>
 
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">CONTEÚDO</label>
-        <RichTextEditor value={content} onChange={setContent} />
+        <label htmlFor="blog-content" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">CONTEÚDO</label>
+        <RichTextEditor id="blog-content" value={content} onChange={setContent} disabled={isSubmitting} />
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
@@ -46,7 +48,7 @@ export function NewBlog({ onSubmit, onCancel, isSubmitting = false }: NewBlogPro
           disabled={isSubmitting}
           className="bg-black text-white text-sm font-semibold px-5 py-2.5 hover:bg-neutral-800 transition disabled:opacity-50"
         >
-          {isSubmitting ? "CRIANDO..." : "CRIAR ENSAIO"}
+          {isSubmitting ? "GUARDANDO..." : initialBlog ? "GUARDAR ALTERAÇÕES" : "CRIAR ENSAIO"}
         </button>
       </div>
     </form>

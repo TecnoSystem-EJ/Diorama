@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import { PublicPage, EditorialContent } from "../../components/PublicPage";
-import { publicApi, type PublicBlog } from "../../../lib/publicApi";
+import { publicApi, plainText, type PublicBlog } from "../../../lib/publicApi";
 
+type Props = { params: Promise<{ id: string }> };
+async function loadBlog(id: string) { return publicApi<{ blog: PublicBlog }>(`/blogs/${encodeURIComponent(id)}`); }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const { blog } = await loadBlog(id);
+  return { title: blog.titulo, description: plainText(blog.conteudoHtml, 160), alternates: { canonical: `/blog/${id}` }, openGraph: { type: "article", publishedTime: blog.dataPublicacao } };
+}
 export default async function BlogPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { blog } = await publicApi<{ blog: PublicBlog }>(`/blogs/${encodeURIComponent(id)}`);

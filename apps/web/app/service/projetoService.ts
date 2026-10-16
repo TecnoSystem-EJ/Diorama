@@ -10,6 +10,7 @@ function mapProjeto(item: Record<string, unknown>): Projeto {
     id: String(item.id ?? ""),
     imageUrl: String(item.imagemUrl ?? item.imagem_url ?? item.imageUrl ?? ""),
     title: String(item.titulo ?? item.title ?? ""),
+    content: String(item.conteudoHtml ?? ""),
   };
 }
 
@@ -18,6 +19,20 @@ export async function fetchProjetos(): Promise<Projeto[]> {
   const data = await readResponse<Record<string, unknown>>(response);
   const projetos = (Array.isArray(data?.projetos) ? data.projetos : []) as Record<string, unknown>[];
   return projetos.map(mapProjeto);
+}
+
+export async function fetchProjeto(id: string): Promise<Projeto> {
+  const response = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`, { headers: authHeaders() });
+  const data = await readResponse<{ projeto: Record<string, unknown> }>(response);
+  return mapProjeto(data.projeto);
+}
+
+export async function updateProjeto(id: string, data: { title: string; imageUrl: string; content: string }): Promise<void> {
+  const response = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`, {
+    method: "PUT", headers: authHeaders(),
+    body: JSON.stringify({ titulo: data.title, imagemUrl: data.imageUrl, conteudoHtml: data.content }),
+  });
+  await readResponse(response);
 }
 
 export async function createProjeto(data: { title: string; imageUrl: string; content: string }): Promise<void> {

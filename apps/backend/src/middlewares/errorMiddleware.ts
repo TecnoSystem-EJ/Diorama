@@ -1,10 +1,13 @@
 import type { ErrorRequestHandler } from "express";
 import multer from "multer";
 import { Prisma } from "@diorama/db";
+import { HttpError } from "../utils/httpError.js";
 import { ZodError } from "zod";
 
 export const errorMiddleware: ErrorRequestHandler = (error, _req, res, _next) => {
-  if (error instanceof ZodError) {
+  if (error instanceof HttpError) {
+    res.status(error.status).json({ mensagem: error.message });
+  } else if (error instanceof ZodError) {
     res.status(400).json({ mensagem: error.issues.map(issue => issue.message).join(" ") });
   } else if (error instanceof multer.MulterError) {
     res.status(400).json({ mensagem: error.code === "LIMIT_FILE_SIZE" ? "Cada arquivo deve ter até 20 MB." : "Upload inválido." });

@@ -4,9 +4,10 @@ import { Projeto } from "../../../../types/projeto";
 interface ProjetoRowProps {
   projeto: Projeto;
   onRemove: (id: string) => void;
+  onEdit: (id: string) => void;
 }
 
-export function ProjetoRow({ projeto, onRemove }: ProjetoRowProps) {
+export function ProjetoRow({ projeto, onRemove, onEdit }: ProjetoRowProps) {
   function handleRemoveClick() {
     if (window.confirm(`Remover o projeto "${projeto.title}"?`)) {
       onRemove(projeto.id);
@@ -22,7 +23,9 @@ export function ProjetoRow({ projeto, onRemove }: ProjetoRowProps) {
       </td>
       <td className="py-4 pr-6 font-serif text-lg">{projeto.title}</td>
       <td className="py-4 text-right whitespace-nowrap">
+        <button type="button" onClick={() => onEdit(projeto.id)} aria-label={`Editar ${projeto.title}`} className="mr-5 text-sm font-semibold tracking-wide text-blue-700 hover:underline">EDITAR</button>
         <button
+          aria-label={`Remover ${projeto.title}`}
           onClick={handleRemoveClick}
           className="text-sm font-semibold tracking-wide text-red-600 hover:underline"
         >

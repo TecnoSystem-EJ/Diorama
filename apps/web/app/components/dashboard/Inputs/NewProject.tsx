@@ -2,17 +2,19 @@
 
 import { useState, type FormEvent } from "react";
 import { RichTextEditor } from "../../ui/RichTextEditor";
+import type { Projeto } from "../../../types/projeto";
 
 interface NewProjetoProps {
   onSubmit: (data: { title: string; imageUrl: string; content: string }) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
+  initialProjeto?: Projeto;
 }
 
-export function NewProjeto({ onSubmit, onCancel, isSubmitting = false }: NewProjetoProps) {
-  const [title, setTitle] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [content, setContent] = useState("");
+export function NewProjeto({ onSubmit, onCancel, isSubmitting = false, initialProjeto }: NewProjetoProps) {
+  const [title, setTitle] = useState(initialProjeto?.title ?? "");
+  const [imageUrl, setImageUrl] = useState(initialProjeto?.imageUrl ?? "");
+  const [content, setContent] = useState(initialProjeto?.content ?? "");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -48,8 +50,8 @@ export function NewProjeto({ onSubmit, onCancel, isSubmitting = false }: NewProj
       </div>
 
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">CONTEÚDO</label>
-        <RichTextEditor value={content} onChange={setContent} />
+        <label htmlFor="project-content" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">CONTEÚDO</label>
+        <RichTextEditor id="project-content" value={content} onChange={setContent} disabled={isSubmitting} />
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
@@ -61,7 +63,7 @@ export function NewProjeto({ onSubmit, onCancel, isSubmitting = false }: NewProj
           disabled={isSubmitting}
           className="bg-black text-white text-sm font-semibold px-5 py-2.5 hover:bg-neutral-800 transition disabled:opacity-50"
         >
-          {isSubmitting ? "CRIANDO..." : "CRIAR PROJETO"}
+          {isSubmitting ? "GUARDANDO..." : initialProjeto ? "GUARDAR ALTERAÇÕES" : "CRIAR PROJETO"}
         </button>
       </div>
     </form>

@@ -1,0 +1,66 @@
+name: Validação Diorama
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: diorama
+          POSTGRES_PASSWORD: diorama_ci
+          POSTGRES_DB: diorama_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U diorama -d diorama_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      mailpit:
+        image: axllent/mailpit:v1.27
+        ports: ["1025:1025", "8025:8025"]
+    env:
+      DATABASE_URL: postgresql://diorama:diorama_ci@localhost:5432/diorama_ci
+      JWT_SECRET: diorama-ci-only-not-for-production-32-characters
+      SMTP_HOST: 127.0.0.1
+      SMTP_PORT: 1025
+      NEWSLETTER_FROM: Diorama <newsletter@diorama.local>
+      NEWSLETTER_PUBLIC_URL: http://localhost:3000
+      ADMIN_EMAIL: admin@diorama.local
+      ADMIN_PASSWORD: ci-only-password-123
+      E2E_SMTP_TESTS: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @diorama/db db:migrate
+      - run: pnpm --filter backend admin:create
+      - run: pnpm check-types
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Testar os fluxos completos
+        run: |
+          pnpm dev > /tmp/diorama.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://localhost:3001/health && curl --fail --silent --output /dev/null http://localhost:3000/login; then break; fi
+            sleep 1
+          done
+          pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: falhas-playwright
+          path: test-results/
+          retention-days: 7

@@ -12,6 +12,9 @@ function mapMateria(item: Record<string, unknown>): Materia {
     editionTitle: String(edicao.titulo ?? item.edicaoTitulo ?? ""),
     title: String(item.titulo ?? item.title ?? ""),
     author: Array.isArray(item.autores) ? item.autores.map((autor: { nome: string }) => autor.nome).join(", ") : "",
+    editionId: String(item.edicaoId ?? edicao.id ?? ""),
+    content: String(item.conteudo_html ?? item.conteudoHtml ?? ""),
+    pdfUrl: String(item.pdfUrl ?? ""),
   };
 }
 
@@ -32,7 +35,7 @@ export interface MateriaInput {
   content: string;
 }
 
-export async function createMateria(data: MateriaInput): Promise<void> {
+function materiaForm(data: MateriaInput): FormData {
   const form = new FormData();
   form.set("edicaoId", data.editionId);
   form.set("titulo", data.title);
@@ -40,10 +43,27 @@ export async function createMateria(data: MateriaInput): Promise<void> {
   form.set("conteudo_html", data.content);
   if (data.image) form.set("imagemDestaque", data.image);
   if (data.pdf) form.set("revistaPdf", data.pdf);
+  return form;
+}
+
+export async function fetchMateria(id: string): Promise<Materia> {
+  const response = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`, { headers: authHeaders() });
+  const data = await readResponse<{ revista: Record<string, unknown> }>(response);
+  return mapMateria(data.revista);
+}
+
+export async function updateMateria(id: string, data: MateriaInput): Promise<void> {
+  const response = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`, {
+    method: "PUT", headers: authHeaders(false), body: materiaForm(data),
+  });
+  await readResponse(response);
+}
+
+export async function createMateria(data: MateriaInput): Promise<void> {
   const response = await fetch(BASE_URL, {
     method: "POST",
     headers: authHeaders(false),
-    body: form,
+    body: materiaForm(data),
   });
 
   await readResponse(response);

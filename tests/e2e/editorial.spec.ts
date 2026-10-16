@@ -1,9 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 import { randomUUID } from "node:crypto";
 
-const env = parseEnv(readFileSync("apps/backend/.env", "utf8"));
+const env = { ...(existsSync("apps/backend/.env") ? parseEnv(readFileSync("apps/backend/.env", "utf8")) : {}), ...process.env };
 const api = process.env.E2E_API_URL ?? "http://localhost:3001";
 const email = process.env.E2E_ADMIN_EMAIL ?? env.ADMIN_EMAIL!;
 const senha = process.env.E2E_ADMIN_PASSWORD ?? env.ADMIN_PASSWORD!;
@@ -82,7 +82,7 @@ test("painel publica, edita e remove conteúdo com uploads e persistência real"
     await page.getByRole("button", { name: "+ NOVA EDIÇÃO", exact: true }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("TÍTULO", { exact: true }).fill(title);
-    await dialog.getByLabel("NÚMERO DA EDIÇÃO").fill(suffix);
+    await dialog.getByLabel("NÚMERO / TAG DA EDIÇÃO").fill(suffix);
     await dialog.getByLabel("IMAGEM DA CAPA").setInputFiles(image);
     await dialog.getByRole("button", { name: "GUARDAR REGISTRO" }).click();
     await expect(dialog).not.toBeVisible();
@@ -115,10 +115,12 @@ test("painel publica, edita e remove conteúdo com uploads e persistência real"
     materiaId = materia.id;
     expect((await request.get(materia.pdfUrl)).ok()).toBeTruthy();
     await publicPage.goto(`/edicoes/${edicaoId}`);
-    await expect(publicPage.getByRole("link", { name: materiaTitle })).toBeVisible();
-    await publicPage.getByRole("link", { name: materiaTitle }).click();
+    await expect(publicPage.getByRole("button", { name: "Buscar no acervo", exact: true })).toBeEnabled();
+    await expect(publicPage.getByRole("link", { name: new RegExp(materiaTitle) }).first()).toBeVisible();
+    await publicPage.getByRole("link", { name: new RegExp(materiaTitle) }).first().click();
+    await expect(publicPage).toHaveURL(new RegExp(`/materias/${materiaId}$`));
     await expect(publicPage.getByText("Conteúdo da matéria de integração.", { exact: true })).toBeVisible();
-    await expect(publicPage.getByRole("link", { name: "Abrir PDF" })).toHaveAttribute("href", materia.pdfUrl);
+    await expect(publicPage.getByRole("link", { name: /Abrir PDF/ }).first()).toHaveAttribute("href", materia.pdfUrl);
 
     await page.getByRole("button", { name: "BLOG", exact: true }).click();
     await page.getByRole("button", { name: "+ NOVO ENSAIO", exact: true }).click();
@@ -130,6 +132,7 @@ test("painel publica, edita e remove conteúdo com uploads e persistência real"
     const blogs = await (await request.get(`${api}/blogs`)).json();
     blogId = blogs.blogs.find((item: { titulo: string }) => item.titulo === blogTitle).id;
     await publicPage.goto("/blog");
+    await expect(publicPage.getByRole("button", { name: "Buscar no acervo", exact: true })).toBeEnabled();
     await publicPage.getByRole("article").filter({ hasText: blogTitle }).getByRole("link", { name: "Ler artigo" }).click();
     await expect(publicPage.getByText("Conteúdo do ensaio de integração.", { exact: true })).toBeVisible();
 
@@ -144,7 +147,8 @@ test("painel publica, edita e remove conteúdo com uploads e persistência real"
     const projetos = await (await request.get(`${api}/projetos`)).json();
     projetoId = projetos.projetos.find((item: { titulo: string }) => item.titulo === projectTitle).id;
     await publicPage.goto("/projetos");
-    await publicPage.getByRole("link", { name: projectTitle }).click();
+    await expect(publicPage.getByRole("button", { name: "Buscar no acervo", exact: true })).toBeEnabled();
+    await publicPage.getByRole("link", { name: new RegExp(projectTitle) }).first().click();
     await expect(publicPage.getByText("Conteúdo do projeto de integração.", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "SOBRE", exact: true }).click();
@@ -166,7 +170,7 @@ test("painel publica, edita e remove conteúdo com uploads e persistência real"
     ]) {
       await page.getByRole("button", { name: tab, exact: true }).click();
       const item = page.getByRole("row").filter({ hasText: itemTitle });
-      await item.getByRole("button", { name: "REMOVER", exact: true }).click();
+      await item.getByRole("button", { name: /^Remover / }).click();
       await expect(item).not.toBeVisible();
       expect((await request.get(`${api}/${endpoint}/${id}`)).status()).toBe(404);
     }
@@ -186,8 +190,8 @@ test("painel publica, edita e remove conteúdo com uploads e persistência real"
 test("newsletter confirma inscrição e navegação pública funciona no celular", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page.getByLabel("Seu email").fill(`newsletter-${randomUUID()}@example.test`);
-  await page.getByRole("button", { name: "Receber", exact: true }).click();
+  await page.getByRole("main").getByLabel("Seu email").fill(`newsletter-${randomUUID()}@example.test`);
+  await page.getByRole("main").getByRole("button", { name: "Receber", exact: true }).click();
   await expect(page.getByRole("status")).toHaveText("Inscrição recebida com sucesso!");
   await page.getByRole("link", { name: "FAZER LOGIN", exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);

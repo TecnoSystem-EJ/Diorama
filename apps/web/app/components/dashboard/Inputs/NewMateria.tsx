@@ -4,22 +4,24 @@ import { useState, type FormEvent } from "react";
 import { RichTextEditor } from "../../ui/RichTextEditor";
 import { useEditions } from "../../../hooks/useEdicao";
 import type { MateriaInput } from "../../../service/materiaService";
+import type { Materia } from "../../../types/materia";
 
 interface NewMateriaProps {
   onSubmit: (data: MateriaInput) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
+  initialMateria?: Materia;
 }
 
-export function NewMateria({ onSubmit, onCancel, isSubmitting = false }: NewMateriaProps) {
+export function NewMateria({ onSubmit, onCancel, isSubmitting = false, initialMateria }: NewMateriaProps) {
   const { editions, isLoading: editionsLoading, error: editionsError } = useEditions();
 
-  const [editionId, setEditionId] = useState("");
-  const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
+  const [editionId, setEditionId] = useState(initialMateria?.editionId ?? "");
+  const [title, setTitle] = useState(initialMateria?.title ?? "");
+  const [author, setAuthor] = useState(initialMateria?.author ?? "");
   const [image, setImage] = useState<File | null>(null);
   const [pdf, setPdf] = useState<File | null>(null);
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(initialMateria?.content ?? "");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -45,7 +47,7 @@ export function NewMateria({ onSubmit, onCancel, isSubmitting = false }: NewMate
           </option>
           {editions.map((edition) => (
             <option key={edition.id} value={edition.id}>
-              Edição {String(edition.number).padStart(2, "0")} — {edition.title}
+              {edition.number} — {edition.title}
             </option>
           ))}
         </select>
@@ -88,21 +90,23 @@ export function NewMateria({ onSubmit, onCancel, isSubmitting = false }: NewMate
           accept="image/png,image/jpeg,image/webp,image/gif"
           onChange={(e) => setImage(e.target.files?.[0] ?? null)}
           className="w-full border border-neutral-300 px-3 py-2 text-sm"
-          required
+          required={!initialMateria}
           disabled={isSubmitting}
         />
       </div>
 
       <div>
-        <label htmlFor="materia-pdf" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">PDF DA MATÉRIA</label>
-        <input id="materia-pdf" type="file" accept="application/pdf" required disabled={isSubmitting} onChange={(e) => setPdf(e.target.files?.[0] ?? null)} />
+        <label htmlFor="materia-pdf" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">PDF DA MATÉRIA (OBRIGATÓRIO)</label>
+        {initialMateria?.pdfUrl && <a href={initialMateria.pdfUrl} target="_blank" rel="noopener noreferrer" className="mb-2 inline-block text-sm underline">Abrir PDF atual da matéria</a>}
+        <input id="materia-pdf" type="file" accept="application/pdf" required={!initialMateria?.pdfUrl} disabled={isSubmitting} onChange={(e) => setPdf(e.target.files?.[0] ?? null)} className="w-full border border-neutral-300 px-3 py-2 text-sm" />
+        {initialMateria && <p className="mt-1 text-xs text-neutral-600">Deixe os arquivos vazios para manter a imagem e o PDF atuais. Um arquivo novo substitui o anterior.</p>}
       </div>
 
       <div>
-        <label className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">
+        <label htmlFor="materia-content" className="block text-xs font-semibold tracking-wide text-neutral-500 mb-1">
           CONTEÚDO DA MATÉRIA
         </label>
-        <RichTextEditor value={content} onChange={setContent} />
+        <RichTextEditor id="materia-content" value={content} onChange={setContent} disabled={isSubmitting} />
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
@@ -114,7 +118,7 @@ export function NewMateria({ onSubmit, onCancel, isSubmitting = false }: NewMate
           disabled={isSubmitting}
           className="bg-black text-white text-sm font-semibold px-5 py-2.5 hover:bg-neutral-800 transition disabled:opacity-50"
         >
-          {isSubmitting ? "CRIANDO..." : "CRIAR MATÉRIA"}
+          {isSubmitting ? "GUARDANDO..." : initialMateria ? "GUARDAR ALTERAÇÕES" : "CRIAR MATÉRIA"}
         </button>
       </div>
     </form>

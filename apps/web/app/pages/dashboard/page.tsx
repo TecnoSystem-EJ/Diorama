@@ -9,6 +9,7 @@ import { SobreSection } from "../../components/dashboard/sections/SobreSection";
 import { ProjetosSection } from "../../components/dashboard/sections/projeto/ProjetoSection";
 import { MateriasSection } from "../../components/dashboard/sections/materia/MateriaSection";
 import { useAuth } from "../../hooks/useAuth";
+import { NewsletterSection } from "../../components/dashboard/sections/NewsletterSection";
 
 const SECTIONS: Record<DashboardTab, () => React.JSX.Element> = {
   edicoes: EdicaoSection,
@@ -16,6 +17,7 @@ const SECTIONS: Record<DashboardTab, () => React.JSX.Element> = {
   blog: BlogSection,
   projetos: ProjetosSection,
   sobre: SobreSection,
+  newsletter: NewsletterSection,
 };
 
 export default function DashboardRoute() {
@@ -42,7 +44,7 @@ export default function DashboardRoute() {
   return (
     <div className="min-h-screen bg-white">
       <PainelSubNav activeTab={activeTab} onChangeTab={setActiveTab} />
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      <main className="max-w-6xl min-w-0 mx-auto px-4 py-10 sm:px-6">
         <ActiveSection />
       </main>
     </div>

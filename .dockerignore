@@ -1,0 +1,16 @@
+.git
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+backups
+apps/backend/static
+test-results
+playwright-report
+.agents
+.codex
+.aws

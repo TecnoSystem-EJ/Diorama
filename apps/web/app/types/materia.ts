@@ -4,4 +4,7 @@ export interface Materia {
   editionTitle: string; 
   title: string;
   author: string;
+  editionId: string;
+  content: string;
+  pdfUrl: string;
 }

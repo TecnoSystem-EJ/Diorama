@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from 'react'
 import Link from "next/link";
 import Header from '../../components/Header'
@@ -28,10 +29,7 @@ const equipe = () => {
 
                 <div>
                   <h3 className="font-bold uppercase mb-0">Editores</h3>
-                  <p className="text-neutral-700 leading-relaxed text-lg">Lorem ipsum</p>
-                  <p className="text-neutral-700 leading-relaxed text-lg">Lorem ipsum</p>
-                  <p className="text-neutral-700 leading-relaxed text-lg">Lorem ipsum</p>
-                  <p className="text-neutral-700 leading-relaxed text-lg">Lorem ipsum</p>
+                  <p className="text-neutral-700 leading-relaxed text-lg">A composição da equipe editorial será divulgada após a confirmação dos créditos oficiais.</p>
                 </div>
                 </section>
             </section>
@@ -42,3 +40,5 @@ const equipe = () => {
 }
 
 export default equipe
+
+export const metadata: Metadata = { title: "Equipe", description: "Créditos e informações sobre a equipe editorial da Diorama.", alternates: { canonical: "/about/equipe" } };

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from 'react'
 import Link from "next/link";
 import Header from '../../components/Header'
@@ -41,3 +42,4 @@ const page = () => {
 }
 
 export default page
+export const metadata: Metadata = { title: "Como colaborar", description: "Conheça o acervo e acompanhe as chamadas editoriais da Diorama.", alternates: { canonical: "/about/colaborar" } };

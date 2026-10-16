@@ -29,6 +29,8 @@ export class RevistaService {
         pdfUrl: string,
         autores?: string[],
     }){
+        const edicao = await db.edicao.findUnique({ where: { id: data.edicaoId, deleted: false }, select: { id: true } });
+        if (!edicao) throw Object.assign(new Error("Selecione uma edição ativa."), { status: 400 });
         const { autores, ...revista } = data;
         return await db.revista.create({data: {
             ...revista,
@@ -57,9 +59,14 @@ export class RevistaService {
     }
 
     async editar(id:string, data:Prisma.RevistaUpdateInput){
+        const edicaoId = data.edicao?.connect?.id;
+        if (edicaoId) {
+            const edicao = await db.edicao.findUnique({ where: { id: edicaoId, deleted: false }, select: { id: true } });
+            if (!edicao) throw Object.assign(new Error("Selecione uma edição ativa."), { status: 400 });
+        }
         return await db.revista.update({
             where:{
-                id:id
+                id:id, deleted: false
             },
             data
         })

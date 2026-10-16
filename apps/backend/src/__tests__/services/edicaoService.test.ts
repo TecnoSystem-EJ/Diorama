@@ -88,7 +88,7 @@ describe("EdicaoService", () => {
 
       const result = await service.editar("1", data);
 
-      expect(mockedDb.edicao.update).toHaveBeenCalledWith({ where: { id: "1" }, data });
+      expect(mockedDb.edicao.update).toHaveBeenCalledWith({ where: { id: "1", deleted: false }, data });
       expect(result).toEqual(edicaoEditada);
     });
   });

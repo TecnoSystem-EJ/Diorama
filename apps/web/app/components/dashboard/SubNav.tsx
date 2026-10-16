@@ -2,7 +2,7 @@
 
 import { useAuth } from "../../hooks/useAuth";
 
-export type DashboardTab = "edicoes" | "materias" | "blog" | "projetos" | "sobre";
+export type DashboardTab = "edicoes" | "materias" | "blog" | "projetos" | "sobre" | "newsletter";
 
 const TABS: { label: string; value: DashboardTab }[] = [
   { label: "EDIÇÕES BASE", value: "edicoes" },
@@ -10,6 +10,7 @@ const TABS: { label: string; value: DashboardTab }[] = [
   { label: "BLOG", value: "blog" },
   { label: "PROJETOS", value: "projetos" },
   { label: "SOBRE", value: "sobre" },
+  { label: "NEWSLETTER", value: "newsletter" },
 ];
 
 interface PainelSubNavProps {
@@ -22,7 +23,7 @@ export function PainelSubNav({ activeTab, onChangeTab }: PainelSubNavProps) {
 
   return (
     <div className="border-b border-neutral-200 bg-neutral-50">
-      <div className="max-w-6xl mx-auto px-6 py-8 flex items-end justify-between">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col gap-6 items-start justify-between xl:flex-row xl:items-end">
         <div>
           <h1 className="font-serif text-3xl">Painel Editorial</h1>
           <p className="text-xs tracking-widest text-neutral-500 mt-1">
@@ -30,12 +31,13 @@ export function PainelSubNav({ activeTab, onChangeTab }: PainelSubNavProps) {
           </p>
         </div>
 
-        <nav className="flex items-center gap-6 text-xs font-semibold tracking-wide">
+        <nav aria-label="Seções do painel editorial" className="flex flex-wrap items-center gap-x-6 gap-y-4 text-xs font-semibold tracking-wide">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.value;
             return (
               <button
                 key={tab.value}
+                aria-current={isActive ? "page" : undefined}
                 onClick={() => onChangeTab(tab.value)}
                 className={
                   isActive
